@@ -276,8 +276,6 @@ if ( flag == 0 )
     xk = chebpts(N + 2, f.domain([1, end]));
 end
 
-xo = xk;
-
 end
 
 function [p, h] = computeTrialFunctionPolynomial(fk, xk, w, m, N, dom)
