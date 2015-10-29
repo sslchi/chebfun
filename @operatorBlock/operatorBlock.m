@@ -127,25 +127,20 @@ classdef (InferiorClasses = {?chebfun}) operatorBlock < linBlock
 
                 % Need to store whether we got passed in a zero scalar.
                 isz = ( A == 0 );
-                
-                % Create an OPERATOR block to be returned.
-                C = operatorBlock(B.domain);
-                
+                                
                 % Update the stack.
-                C.stack = @(z) A * B.stack(z);
+                B.stack = @(z) A * B.stack(z);
                 
                 % Output is a zero operator if either A or B were zero.
-                C.iszero = isz || B.iszero;
-                
-                % Output is a multiplication operator if B was.
-                C.isNotDiffOrInt = B.isNotDiffOrInt;
+                B.iszero = isz || B.iszero;
 
-                % Difforder of the returned OPERATORBLOCK.
-                if ( C.iszero )
-                    C.diffOrder = 0;
-                else
-                    C.diffOrder = B.diffOrder;
+                % Difforder of the returned OPERATORBLOCK is 0 if it's a zero op
+                if ( B.iszero )
+                    B.diffOrder = 0;
                 end
+                
+                % Assign output
+                C = B;
                 
             elseif ( isnumeric(B) )
                 % Swap arguments.
@@ -155,6 +150,7 @@ classdef (InferiorClasses = {?chebfun}) operatorBlock < linBlock
                 % Here, we are dealing with an OPERATORBLOCK * OPERATORBLOCK.
                 
                 % Create an OPERATORBLOCK to be returned.
+                % TODO: Save initialization here, similar to above, reuse A
                 C = operatorBlock(A.domain);
 
                 % The instantiation class must recognize mtimes as a
