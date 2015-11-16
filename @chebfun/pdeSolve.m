@@ -157,7 +157,9 @@ end
         for kk = 1:numel(t)
             % Reshape solution:
             Uk = reshape(U(:,kk), currentLength, SYSSIZE);
-
+            mytmp007 = Uk;
+            Uk = chebtech2.coeffs2vals(Uk);
+            
             % Happiness check:
             c = (1+sin(1:SYSSIZE)).'; % Arbitrarily linear combination.
             Uk2 = (Uk*c/sum(c));
@@ -173,7 +175,8 @@ end
 
                 % Store these values:
                 tCurrent = t(kk);
-                uCurrent = chebfun(Uk, DOMAIN, 'tech', techHandle);
+                Uk = mytmp007;
+                uCurrent = chebfun(Uk, DOMAIN, 'coeffs', 'tech', techHandle);
                 uCurrent = simplify(uCurrent);
                 
                 COUNTER = COUNTER + 1;
@@ -392,6 +395,14 @@ middleNonlinBCLocs = [];
 rightNonlinBCLocs = [];
 BCRHS = {};
 
+    function e = dirichletLeft(n)
+        e = ones(1,n);
+        e(2:2:end) = -1;
+    end
+    function e = dirichletRight(n)
+        e = ones(1,n);
+    end
+
 if ( ischar(bc) && any(strcmpi(bc, {'periodic', 'trig'})) )
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%% PERIODIC BCS  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -444,7 +455,8 @@ else
                 'For BCs of the form {char, val} val must be numeric.')
         end
         if ( strcmpi(bc.left, 'dirichlet') )
-            A = @(n) [1 zeros(1, n - 1)];
+%             A = @(n) [1 zeros(1, n - 1)];
+            A = @(n) dirichletLeft(n);
         elseif ( strcmpi(bc.left, 'neumann') )
             % TODO: Make left diff operator explicitly.
             A = @(n) [1 zeros(1, n-1)]*chebcolloc2.diffmat(n)*diff(DOMAIN)/2;
@@ -499,7 +511,8 @@ else
                 'For BCs of the form {char, val} val must be numeric.')
         end
         if ( strcmpi(bc.right, 'dirichlet') )
-            A = @(n) [zeros(1, n-1), 1];
+%             A = @(n) [zeros(1, n-1), 1];
+            A = @(n) dirichletRight(n);
         elseif ( strcmpi(bc.right, 'neumann') )
             % TODO: Make right diff operator explicitly.
             A = @(n) [zeros(1, n-1) 1]*chebcolloc2.diffmat(n)*diff(DOMAIN)/2;
@@ -552,7 +565,7 @@ end
 if ( ~ISPERIODIC )
     techHandle = @chebtech2;
     points = @chebpts;
-    mydouble = @chebdouble;
+    mydouble = @chebdouble2;
 else
     techHandle = @trigtech;
     points = @trigpts;
@@ -603,6 +616,7 @@ end
 
 % Initial condition:
 uCurrent = u0;
+
 % Storage:
 uOut = cell(1, numel(tt));
 uOut{1} = uCurrent;
@@ -698,6 +712,7 @@ clear global SYSSIZE
 
         % Evaluate the chebfun at discrete points:
         U0 = feval(uCurrent, x);
+        U0 = chebcoeffs(prolong(uCurrent.funs{1}.onefun, length(x)));
 
         if ( ISPERIODIC )
             
@@ -721,10 +736,11 @@ clear global SYSSIZE
             for kk = 1:SYSSIZE
                 xk = chebpts(n-DIFFORDER(kk), DOMAIN, 1);
                 P{kk} = barymat(xk, x);
+                P{kk} = eye(size(P{kk}));
                 M{kk} = pdeFlag(kk)*P{kk};
             end
-            P = [ 0*B ; blkdiag(P{:})];
-            M = [ 0*B ; blkdiag(M{:})];
+            P = [ 0*B ; blkdiag(P{:}) ];
+            M = [ 0*B ; blkdiag(M{:}) ];
             rows = 1:size(B, 1);
             
             % Multiply by user-defined mass matrix
@@ -794,9 +810,8 @@ clear global SYSSIZE
             end
             
             % Enforce boundary constraints:
-            
             F = P*F; % Project.
-            
+
             % Get the algebraic right-hand sides: (may be time-dependent)
             for l = 1:numel(BCRHS)
                 if ( isa(BCRHS{l}, 'function_handle') )
