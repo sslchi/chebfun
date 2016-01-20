@@ -112,7 +112,17 @@ classdef functionalBlock < linBlock
             C.diffOrder = max(A.diffOrder, B.diffOrder);
             C.iszero = A.iszero && B.iszero;
             C.isNotDiffOrInt = A.isNotDiffOrInt && B.isNotDiffOrInt;
-        end        
+        end
+        
+        function C = diag(A)
+            %DIAG   Promote 1 x Inf FUNCTIONALBLOCK to Inf x Inf OPERATORBLOCK 
+
+            C = operatorBlock(A.domain);
+            C.stack = @(z) diag(A.stack(z));
+            C.diffOrder = A.diffOrder;
+            C.iszero = A.iszero;
+            C.isNotDiffOrInt = A.isNotDiffOrInt;
+        end
         
         function out = iszero(A)
             out = A.iszero;
