@@ -55,6 +55,9 @@ S.constraint = Scon;
 % Right hand side
 rhs = [chebfun(0, d); 1];
 
+% Impose continuity conditions over breakpoints
+S = deriveContinuity(S);
+
 % Solve for the tangent:
 ttau = linsolve(S, rhs, prefs);
 

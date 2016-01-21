@@ -200,7 +200,7 @@ while ( ~terminate )
         normDelta, cFactor, length(delta{1}), lambda, len, displayFig, ...
         displayTimer, pref);
     
-    if ( errEst < bvpTolNonlinear )  
+    if ( errEst < 1e-8 )  
         % Sweet, we have converged!      
         success = 1;
     elseif ( newtonCounter > maxIter )

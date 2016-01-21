@@ -162,15 +162,22 @@ if ( any(xAtBreaks) )
     if ( leftFlag )
         % Note that for leftFlag we use 'rval-local', which corresponds to the
         % function value at the right part of the subdomain.
-        pointValues = [f.pointValues(1,:); get(f, 'rval-local')];
+        %f = removeDeltas(f);
+        floc = get(f, 'rval-local');
+        pointValues = [f.pointValues(1,:); floc(:)];
     elseif ( rightFlag )
         % Similarly rightFlag uses lval-local.
-        pointValues = [get(f, 'lval-local'); f.pointValues(end,:)];
+        floc = get(f, 'lval-local');
+        pointValues = [floc(:); f.pointValues(end,:)];
     else
         pointValues = f.pointValues;
     end
     % Set the output values for any values of x at the breakpoints.
-    out(xAtBreaks,:) = pointValues(domIndices(xAtBreaks),:);
+    try
+        out(xAtBreaks,:) = pointValues(domIndices(xAtBreaks),:);
+    catch ME
+        keyboard
+    end
 end
 
 %% RESHAPE FOR OUTPUT:

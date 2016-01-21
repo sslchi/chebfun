@@ -69,6 +69,8 @@ while ( ~accept )
     
     % Reassign the (boundary) constraints:
     L.constraint = Scon;
+    
+    L = deriveContinuity(L);
         
     % RHS is the residual of the differential equation, we then add a 0 at the
     % bottom for the functional condition:
