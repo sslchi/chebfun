@@ -45,6 +45,7 @@ if ( any( exps(:) ) )
     end
 elseif ( ~isempty(infoJ) )
     name = infoJ{1}.name;
+    data = {infoJ{1}.data};
 end
 
 % More information for F can be appended to INFO:

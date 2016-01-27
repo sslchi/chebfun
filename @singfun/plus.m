@@ -123,6 +123,10 @@ else
     % Case 3: Nontrivial difference in the exponents of F and G. Form a new
     % function handle for the sum from F and G.
     
+    s = sumfun(f, g);
+    
+    return
+    
     warning('CHEBFUN:SINGFUN:plus:exponentDiff', ...
         ['Non-integer difference in the exponents of the two SINGFUN ' ...
         'objects: The result may not be accurate.']);
