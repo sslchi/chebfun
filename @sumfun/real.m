@@ -13,11 +13,6 @@ if ( isempty(f) )
 end
 
 % Compute the real part of the smooth part of F.
-f.smoothPart = real(f.smoothPart);
-
-% Return a SMOOTHFUN object if F is smooth:
-if ( issmooth(f) )
-    f = f.smoothPart;
-end
+f.funs = cellfun(@real, f.funs, 'UniformOutput', false);
 
 end
