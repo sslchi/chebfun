@@ -41,22 +41,6 @@ if ( abs( K - round(K) ) > eps )
 end
 K = round( K );
 
-% Implement higher derivatives as repeated (iterated) differentiation
-for j=1:K
-    f = onediff(f, dim);
-end
-
-end
-
-% Computes one derivative of f for the given dimension
-function f = onediff(f, dim)
-% TODO: This code will not work for complex valued spherefuns, if we ever
-% allow them.
-% realf = isreal(f);
-
-% Simplify f to avoid any extra work
-f = simplify(f);
-
 % We are going to work at the tech level to make things faster.
 [C, D, R] = cdr( f );
 
@@ -77,11 +61,44 @@ else
 end
 n = n + 2;  % Pad columns
 
+% Work at the tech level to make things faster.
+ctechs = C.funs{1}.onefun;
+rtechs = R.funs{1}.onefun;
+
+% Alias will do the padding of the coefficients.
+Ccfs = ctechs.alias(ctechs.coeffs,n);
+Rcfs = rtechs.alias(rtechs.coeffs,m);
+
+% Implement higher derivatives as repeated (iterated) differentiation
+for j=1:K
+    [Ccfs,D,Rcfs] = onediff(Ccfs, D, Rcfs, dim);
+end
+f.
+% f = spherefun(real(F([n/2+1:end 1],:)));
+
+end
+
+% Computes one derivative of f for the given dimension
+function F = onediff(C, D, R, dim)
+% TODO: This code will not work for complex valued spherefuns, if we ever
+% allow them.
+% realf = isreal(f);
+
+% Simplify f to avoid any extra work
+% f = simplify(f);
+
+n = length(C);
+m = length(R);
+
 % Matrices for multiplying by sin/cos in coefficient space.
 Msinn = .5i*spdiags(ones(n,1)*[-1,1],[-1 1],n,n);
 Msinm = .5i*spdiags(ones(m,1)*[-1,1],[-1 1],m,m);
 Mcosn = .5*spdiags(ones(n,1)*[1,1],[-1 1],n,n);
 Mcosm = .5*spdiags(ones(m,1)*[1,1],[-1 1],m,m);
+
+% Differentiation matrix
+DFn = trigspec.diffmat(n,1); 
+DFm = trigspec.diffmat(m,1); 
 
 % Work at the tech level to make things faster.
 ctechs = C.funs{1}.onefun;
@@ -91,76 +108,74 @@ rtechs = R.funs{1}.onefun;
 ctechs.coeffs = ctechs.alias(ctechs.coeffs,n);
 rtechs.coeffs = rtechs.alias(rtechs.coeffs,m);
 
+Ccfs = ctechs.coeffs;
+Rcfs = rtechs.coeffs;
+
 % Compute the derivatives
-dCdth = diff(ctechs)/pi;
-dRdlam = diff(rtechs)/pi;
+dCdth = DFn*Ccfs;
+dRdlam = DFm*Rcfs;
 
 % dx and dy involve two terms while dz is only one so we handle the cases
 % separately
 if ( dim == 1 ) || ( dim == 2)
     if ( dim == 1 )            % x
-        % Calculate the C * D * R.' decomposition of -sin(lam)./sin(th) dfdlam
-        C_cfs = ctechs.coeffs;
-        C1 = Msinn \ C_cfs;
-        R1 = -Msinm*dRdlam.coeffs;
+        % Calculate -sin(lam)./sin(th) dfdlam
+        C1 = Msinn \ Ccfs;
+        R1 = -Msinm*dRdlam;
 
-        % Calculate the C * D * R.' decomposition of cos(lam)cos(th) dfdth
-        C2 = Mcosn*dCdth.coeffs;
-        R2 = Mcosm*rtechs.coeffs;
+        % Calculate cos(lam)cos(th) dfdth
+        C2 = Mcosn*dCdth;
+        R2 = Mcosm*Rcfs;
     elseif ( dim == 2 )         % y
         % Calculate the C * D * R.' decomposition of cos(lam)./sin(th) dfdlam
-        C_cfs = ctechs.coeffs;
-        C1 = Msinn \ C_cfs;
-        R1 = Mcosm*dRdlam.coeffs;
+        Ccfs = ctechs.coeffs;
+        C1 = Msinn \ Ccfs;
+        R1 = Mcosm*dRdlam;
 
         % Calculate the C * D * R.' decomposition of sin(lam)cos(th) dfdth
-        C2 = Mcosn*dCdth.coeffs;
-        R2 = Msinm*rtechs.coeffs;
+        C2 = Mcosn*dCdth;
+        R2 = Msinm*Rcfs;
     end
-    % Put pieces back together
-    f1 = f; 
-    c1techs = real(trigtech({'',C1}));
-    f1.cols.funs{1}.onefun = c1techs;
-    r1techs = real(trigtech({'',R1}));
-    f1.rows.funs{1}.onefun = r1techs;
-    
-    % Parity changes
-    temp = f1.idxPlus;
-    f1.idxPlus = f1.idxMinus;
-    f1.idxMinus = temp;
 
-    f2 = f; 
-    c2techs = real(trigtech({'',C2}));
-    f2.cols.funs{1}.onefun = c2techs;
-    r2techs = real(trigtech({'',R2}));
-    f2.rows.funs{1}.onefun = r2techs;
-
-    % Parity changes
-    temp = f2.idxPlus;
-    f2.idxPlus = f2.idxMinus;
-    f2.idxMinus = temp;
+    X = C1*D*R1.' + C2*D*R2.';
 
     % Compression plus may not preserve the expansion properties we want.
     % So we sample each piece add them together and construct a spherefun.
     % TODO: Fix this so everything is done in coefficient space, like this
     % f = f1 + f2;        
     % When constructing from samples, m must be even.
-    m = m + mod(m,2);
-    f = spherefun(sample(f1,m,n/2+1)+sample(f2,m,n/2+1));    
+%     m = m + mod(m,2);
+%     f = spherefun(sample(f1,m,n/2+1)+sample(f2,m,n/2+1));    
 else
-    % Calculate the C * D * R.' decomposition of sin(th) dfdth
-    C1 = -Msinn*dCdth.coeffs;
-    R1 = rtechs.coeffs;
-
-    % Put pieces back together
-    c1techs = real(trigtech({'',C1}));
-    f.cols.funs{1}.onefun = c1techs;
-    r1techs = real(trigtech({'',R1}));
-    f.rows.funs{1}.onefun = r1techs;    
-
-    % Weird feval behavior in chebfun requires this
-    f.cols.pointValues = feval(c1techs,[-1;1]);
-    f.rows.pointValues = feval(r1techs,[-1;1]); 
+    % Calculate sin(th) dfdth
+    C1 = -Msinn*dCdth;
+    R1 = Rcfs;
+    X = C1*D*R1.';
 end    
+
+F = trigtech.coeffs2vals(trigtech.coeffs2vals(X).').';
+%     F = trigtech.coeffs2vals(trigtech.coeffs2vals(SphereFourierFilter(X)).').';
+%     f = spherefun(real(F([n/2+1:end 1],:)));
+%     f = spherefun(F);    
+
+end
+
+function X = SphereFourierFilter( X ) 
+% Fourier filter on the sphere: 
+
+[m, n] = size( X ); 
+
+% Go to VALUES-FOURIER space:
+X = trigtech.coeffs2vals( X );
+
+% Construct mask: 
+mask = ( ones(m,1)*abs(-floor(n/2):floor(n/2)-1) < n/2*abs(sin(pi*trigpts(m)))*ones(1,n)+1 );
+mask(1, [floor(n/2) floor(n/2)+2]) = 0;
+
+% Apply filter: 
+X = mask.*X; 
+
+% Convert back to FOURIER-FOURIER: 
+X = trigtech.vals2coeffs( X ); 
 
 end
