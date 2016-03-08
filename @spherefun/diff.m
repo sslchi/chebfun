@@ -79,17 +79,29 @@ idxMinus = f.idxMinus;
 % Implement higher derivatives as repeated (iterated) differentiation
 for j=1:K
     % Alias will do the padding of the coefficients.
-    n = n + 2;
-    m = m + 2;
+    n = n + 10;
+    m = m + 10;
     Ccfs = ctechs.alias(Ccfs,n);
     Rcfs = rtechs.alias(Rcfs,m);
     [Ccfs,D,Rcfs,idxPlus,idxMinus] = onediff(Ccfs, D, Rcfs, idxPlus, idxMinus, dim);
 end
 
-ctechs = real(trigtech({'',Ccfs}));
+% ctechs = real(trigtech({'',Ccfs}));
+% f.cols.funs{1}.onefun = ctechs;
+% rtechs = real(trigtech({'',Rcfs}));
+% f.rows.funs{1}.onefun = rtechs;
+ctechs = trigtech({'',Ccfs});
+rtechs = trigtech({'',Rcfs});
+if ~isreal(ctechs) && ~isreal(rtechs)
+    ctechs = -imag(ctechs);
+    rtechs = imag(rtechs);
+else
+    ctechs = real(ctechs);
+    rtechs = real(rtechs);
+end
 f.cols.funs{1}.onefun = ctechs;
-rtechs = real(trigtech({'',Rcfs}));
 f.rows.funs{1}.onefun = rtechs;
+
 f.idxPlus = idxPlus;
 f.idxMinus = idxMinus;
 f.pivotValues = 1./diag(D);
@@ -139,7 +151,6 @@ if ( dim == 1 ) || ( dim == 2)
         R2 = Mcosm*Rcfs;
     elseif ( dim == 2 )         % y
         % Calculate the C * D * R.' decomposition of cos(lam)./sin(th) dfdlam
-        Ccfs = ctechs.coeffs;
         C1 = Msinn \ Ccfs;
         R1 = Mcosm*dRdlam;
 
@@ -168,7 +179,7 @@ if ( dim == 1 ) || ( dim == 2)
     if ~isempty( idxPlus )
         evenStart = 1 + mod(floor(m/2),2);
         
-        B1c = real([C2(1,idxPlus);C1(2:n/2+1,idxPlus)+C1(n:-1:n/2+1,idxPlus)]);
+        B1c = real([C1(1,idxPlus);C1(2:n/2+1,idxPlus)+C1(n:-1:n/2+1,idxPlus)]);
         E1r = R1(evenStart:2:m,idxPlus);
 
         B2c = real([C2(1,idxPlus);C2(2:n/2+1,idxPlus)+C2(n:-1:n/2+1,idxPlus)]);
@@ -176,7 +187,7 @@ if ( dim == 1 ) || ( dim == 2)
 
         [Bc,dp,Er] = compression_plus(B1c, E1r, B2c, E2r, D(idxPlus,idxPlus));
 
-        Cp = real(0.5*[Bc(1,:);Bc(2:n/2,:);flip(Bc(2:n/2-1,:))]);
+        Cp = real(0.5*[Bc(1,:);Bc(2:n/2+1,:);flip(Bc(2:n/2,:))]);
         Rp = zeros(m,size(Er,2));
         Rp(evenStart:2:m,:) = Er;
     else
@@ -189,14 +200,29 @@ if ( dim == 1 ) || ( dim == 2)
         oddStart = 2 - mod(floor(m/2),2);
         
         B1c = imag(C1(2:n/2+1,idxMinus)-C1(n:-1:n/2+1,idxMinus));
-        E1r = R1(oddStart:2:m,idxMinus);        
+%         B1c = (C1(2:n/2+1,idxMinus)-C1(n:-1:n/2+1,idxMinus));
+        E1r = R1(oddStart:2:m,idxMinus);
+        E1r = E1r(1:floor(size(E1r,1)/2),:);
 
         B2c = imag(C2(2:n/2+1,idxMinus)-C2(n:-1:n/2+1,idxMinus));
+%         B2c = (C2(2:n/2+1,idxMinus)-C2(n:-1:n/2+1,idxMinus));
         E2r = R2(oddStart:2:m,idxMinus);
+        E2r = E2r(1:floor(size(E2r,1)/2),:);
 
         [Bc,dm,Er] = compression_plus(B1c, E1r, B2c, E2r, D(idxMinus,idxMinus));
+        
+        % Bc should be real, if it is not then this means that both column
+        % and rows were multiplied by an imaginary number.  We need to undo
+        % this.
+        % TODO: What should the tolerance be?
+        if norm(real(Bc),inf)/norm(imag(Bc),inf) < eps
+            Bc = -1i*Bc;  % Minus because 1i*1i = 1.
+            Er = 1i*Er;
+        end
 
         Cm = (0.5*1i)*real([zeros(1,size(Er,2));Bc(1:n/2,:);-flip(Bc(1:n/2-1,:))]);
+%         Cm = 0.5*([zeros(1,size(Er,2));Bc(1:n/2,:);-flip(Bc(1:n/2-1,:))]);
+        Er = [Er;conj(flip(Er))];
         Rm = zeros(m,size(Er,2));
         Rm(oddStart:2:m,:) = Er;
     else
@@ -265,12 +291,12 @@ elseif isempty(Cg)
     return
 end
 
-scl = diag(1./diag(D));
+scl = D;
 cols = [Cf Cg];
 rows = [Rf Rg];
 
-[Qcols, Rcols] = qr(cols);
-[Qrows, Rrows] = qr(rows);
+[Qcols, Rcols] = qr(cols,0);
+[Qrows, Rrows] = qr(rows,0);
 
 Z = zeros(length(scl));
 D = [ scl, Z ; Z.', scl ];
