@@ -392,16 +392,16 @@ end
 % We always want to set the x-limits. Otherwise, plots like
 %   plot(chebfun(@(x) sin(x), [0 pi])
 % will have extra white space around the ends of the domain, and look ugly.
-
 if ( diff(xLim) )
     set(gca, 'xLim', xLim)
 end
 
 % Set the Y-limits if appropriate values have been suggested, or if we were
-% holding on when we entered this method:
-if ( ~defaultYLim || (holdState && strcmp(yLimModeCurrent, 'manual')) ) && ...
-        ( diff(yLim) )
-    set(gca, 'yLim', yLim)
+% holding on with manually set limits when we entered this method:
+if ( holdState && strcmp(yLimModeCurrent, 'manual') )
+    set(gca, 'yLim', yLimCurrent);
+elseif ( ~defaultYLim && diff(yLim) )
+    set(gca, 'yLim', yLim);
 end
 
 %% Misc:
