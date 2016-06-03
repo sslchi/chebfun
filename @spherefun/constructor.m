@@ -636,10 +636,6 @@ while ( ~(happy_columns && happy_rows) && ~failure )
             else
                 colMinus = newColsMinus(:, ii);
                 rowMinus = newRowsMinus(ii, :);
-
-                if any(isnan(newRowsMinus(:))) || any(isinf(newRowsMinus(:)))
-                    fprintf('Shit\n');
-                end
                 
                 % Store the columns and rows
                 colsMinus(:, minusCount) = colMinus;
