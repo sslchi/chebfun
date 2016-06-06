@@ -42,6 +42,7 @@ prefStruct = pref.cheb3Prefs;
 maxRank = prefStruct.maxRank;
 pseudoLevel = prefStruct.chebfun3eps;
 passSampleTest = prefStruct.sampleTest;
+% dom = [-pi pi 0 pi 0 1];
 
 if ( isa(op, 'chebfun3') )     % CHEBFUN3( CHEBFUN3 )
     f = op;
@@ -58,24 +59,25 @@ end
 %% Dimension clustering of Bebendorf & Kuske.
 % An example where this is important. compare3(@(x,y,z)
 % exp(-5*(x+2*y).^2-30*y.^4-7*sin(2*z).^6));
-if ( isempty(fiberDim) )
-    fiberDim = dimCluster(op, dom, vectorize, pref);
-end
-if ( fiberDim == 1 )
-    op = @(y,z,x) op(x,y,z);
-    dom = [dom(3) dom(4) dom(5) dom(6) dom(1) dom(2)];
-elseif ( fiberDim == 2 )
-    op = @(z,x,y) op(x,y,z);
-    dom = [dom(5) dom(6) dom(1) dom(2) dom(3) dom(4)];
-end
+% if ( isempty(fiberDim) )
+%     fiberDim = dimCluster(op, dom, vectorize, pref);
+% end
+% if ( fiberDim == 1 )
+%     op = @(y,z,x) op(x,y,z);
+%     dom = [dom(3) dom(4) dom(5) dom(6) dom(1) dom(2)];
+% elseif ( fiberDim == 2 )
+%     op = @(z,x,y) op(x,y,z);
+%     dom = [dom(5) dom(6) dom(1) dom(2) dom(3) dom(4)];
+% end
+fiberDim = 3;
 isHappy = 0;     % We are currently unresolved.
 failure = 0;     % Reached max discretization size without being happy.
 
 while ( ~isHappy && ~failure )
     %% Main loop of the constructor
-    [xx, yy, zz] = points3D(grid, grid, grid, dom, pref);
+    [lam, th, r] = points3D(grid, grid, grid, dom, pref);
     grid2D = grid;
-    vals = evaluate(op, xx, yy, zz, vectorize);
+    vals = evaluate(op, lam, th, r, vectorize);
     % We have vals(i,j,k) = op(X(i), Y(j), Z(k)), where                 (*)
     %                                           X = chebpts(m,[a,b]);
     %                                           Y = chebpts(n,[c,d]);
@@ -102,7 +104,7 @@ while ( ~isHappy && ~failure )
     factor = 2*sqrt(2); % Ratio between width of tensor and rank (=no. of pivots).
     % 3D version of CHEBFUN's tolerance: to be used in the ACA for pivot
     % size.
-    [relTol, absTol] = getTol3D(xx, yy, zz, vals, grid, dom, pseudoLevel, ...
+    [relTol, absTol] = getTol3D(lam, th, r, vals, grid, dom, pseudoLevel, ...
         vscaleBnd);
     pref.chebfuneps = relTol; % tolerance to be used in happinessCheck.
     
@@ -117,16 +119,16 @@ while ( ~isHappy && ~failure )
         % Refine sampling on tensor grid:
         if ( iFail3D )
             grid = gridRefinePhase1(grid, pref);
-            [xx, yy, zz] = points3D(grid, grid, grid, dom, pref);
+            [lam, th, r] = points3D(grid, grid, grid, dom, pref);
         elseif ( iFail2D )
             grid2D = gridRefinePhase1(grid2D, pref);
-            [xx, yy, zz] = points3D(grid2D, grid2D, grid, dom, pref);
+            [lam, th, r] = points3D(grid2D, grid2D, grid, dom, pref);
         end
         
-        vals = evaluate(op, xx, yy, zz, vectorize); % Resample
+        vals = evaluate(op, lam, th, r, vectorize); % Resample
         vscale = max(abs(vals(:)));
         % New tolerance:
-        [relTol, absTol] = getTol3D(xx, yy, zz, vals, grid, dom, ...
+        [relTol, absTol] = getTol3D(lam, th, r, vals, grid, dom, ...
             pseudoLevel, vscaleBnd);
         pref.chebfuneps = relTol;
         
@@ -162,14 +164,14 @@ while ( ~isHappy && ~failure )
         isHappy = 1;
     else
         % Find the location of 3D and 2D pivot values:
-        pivPos3D = [ xx(pivotIndices3D(:, 1), 1, 1), ...
-            yy(1, pivotIndices3D(:, 2), 1).', ...
-            squeeze(zz(1, 1, pivotIndices3D(:, 3)))];
+        pivPos3D = [ lam(pivotIndices3D(:, 1), 1, 1), ...
+            th(1, pivotIndices3D(:, 2), 1).', ...
+            squeeze(r(1, 1, pivotIndices3D(:, 3)))];
         PI3D = pivotIndices3D; % This will be overwritten in Phase 2, if 
         % necessary.
         for k = 1:sepRank
-            pivPos2D{k} = [ xx(pivotIndices2D{k}(:, 1), 1, 1), ...
-                yy(1,pivotIndices2D{k}(:, 2), 1).'];
+            pivPos2D{k} = [ lam(pivotIndices2D{k}(:, 1), 1, 1), ...
+                th(1,pivotIndices2D{k}(:, 2), 1).'];
         end
         PI2D = pivotIndices2D;
         for k=1:sepRank
@@ -195,8 +197,8 @@ while ( ~isHappy && ~failure )
             Z = mypoints(p, dom(5:6), pref);
             fibersValues = zeros(p, sepRank);
             for k=1:sepRank
-                [xx, yy, zz] = ndgrid(pivPos3D(k, 1), pivPos3D(k, 2), Z);
-                fibersValues(:,k) = squeeze(evaluate(op, xx, yy, zz, vectorize));
+                [lam, th, r] = ndgrid(pivPos3D(k, 1), pivPos3D(k, 2), Z);
+                fibersValues(:,k) = squeeze(evaluate(op, lam, th, r, vectorize));
                 % An alternative is the following, which does
                 % not form xx, yy and zz, but might be easier to read.
 		% fibersValues(:,k) = evaluate(op, repmat(pivPos3D(k, 1),p,1),
@@ -210,8 +212,8 @@ while ( ~isHappy && ~failure )
             fibersValues = zeros(p, sepRank);
             Z = mypoints(p, dom(5:6), pref);
             for k=1:sepRank
-                [xx, yy, zz] = ndgrid(pivPos3D(k, 1), pivPos3D(k, 2), Z);
-                fibersValues(:, k) = squeeze(evaluate(op, xx, yy, zz, vectorize));
+                [lam, th, r] = ndgrid(pivPos3D(k, 1), pivPos3D(k, 2), Z);
+                fibersValues(:, k) = squeeze(evaluate(op, lam, th, r, vectorize));
             end
         end
         
@@ -222,14 +224,14 @@ while ( ~isHappy && ~failure )
             Y = mypoints(n, dom(3:4), pref);
             colsValues = {};
             for k=1:sepRank
-                [xx, yy, zz] = ndgrid(X, pivPos2D{k}(:,2), pivPos3D(k, 3));
-                colsValues{k} = evaluate(op, xx, yy, zz, vectorize);
+                [lam, th, r] = ndgrid(X, pivPos2D{k}(:,2), pivPos3D(k, 3));
+                colsValues{k} = evaluate(op, lam, th, r, vectorize);
             end
             
             rowsValues = {};
             for k=1:sepRank
-                [xx, yy, zz] = ndgrid(pivPos2D{k}(:,1), Y, pivPos3D(k, 3));
-                rowsValues{k} = evaluate(op, xx, yy, zz, vectorize).';
+                [lam, th, r] = ndgrid(pivPos2D{k}(:,1), Y, pivPos3D(k, 3));
+                rowsValues{k} = evaluate(op, lam, th, r, vectorize).';
             end
             
             % Find location of 3D pivots on new grid  (using nesting property).
@@ -247,14 +249,14 @@ while ( ~isHappy && ~failure )
 
             colsValues = {};
             for k=1:sepRank
-                [xx, yy, zz] = ndgrid(X, pivPos2D{k}(:, 2), pivPos3D(k, 3));
-                colsValues{k} = evaluate(op, xx, yy, zz, vectorize);
+                [lam, th, r] = ndgrid(X, pivPos2D{k}(:, 2), pivPos3D(k, 3));
+                colsValues{k} = evaluate(op, lam, th, r, vectorize);
             end
             
             rowsValues = {};
             for k=1:sepRank
-                [xx, yy, zz] = ndgrid(pivPos2D{k}(:, 1), Y, pivPos3D(k, 3));
-                rowsValues{k} = evaluate(op, xx, yy, zz, vectorize).';
+                [lam, th, r] = ndgrid(pivPos2D{k}(:, 1), Y, pivPos3D(k, 3));
+                rowsValues{k} = evaluate(op, lam, th, r, vectorize).';
             end
             
             PI3D(:, 2) = nesting(PI3D(:, 2)); % The 3rd column of PP 
@@ -271,14 +273,14 @@ while ( ~isHappy && ~failure )
             
             colsValues = {};
             for k=1:sepRank
-                [xx, yy, zz] = ndgrid(X, pivPos2D{k}(:, 2), pivPos3D(k, 3));
-                colsValues{k} = evaluate(op, xx, yy, zz, vectorize);
+                [lam, th, r] = ndgrid(X, pivPos2D{k}(:, 2), pivPos3D(k, 3));
+                colsValues{k} = evaluate(op, lam, th, r, vectorize);
             end
             
             rowsValues = {};
             for k=1:sepRank
-                [xx, yy, zz] = ndgrid( pivPos2D{k}(:, 1), Y, pivPos3D(k, 3));
-                rowsValues{k} = evaluate(op, xx, yy, zz, vectorize).';
+                [lam, th, r] = ndgrid( pivPos2D{k}(:, 1), Y, pivPos3D(k, 3));
+                rowsValues{k} = evaluate(op, lam, th, r, vectorize).';
             end
             
             PI3D(:, 1) = nesting1(PI3D(:, 1));
@@ -612,7 +614,7 @@ end
 end
 
 %%
-function [col, pivotVals, row, pivotLoc, ifail2D] = chebfun2ACAv2(op, ...
+function [col, pivotVals, row, pivotLoc, ifail2D] = spherefunACAv2(op, ...
     tol, factor)
 % Perform GE with complete pivoting:
 
@@ -773,54 +775,64 @@ function [xx, yy] = points2D(m, n, dom, pref)
 % technology.
 
 % What tech am I based on?:
-tech = pref.tech();
+%tech = pref.tech();
 
-if ( isa(tech, 'chebtech2') )
-    x = chebpts(m, dom(1:2), 2);   % x grid.
-    y = chebpts(n, dom(3:4), 2);   % y grid.
-    [xx, yy] = ndgrid(x, y);
-elseif ( isa(tech, 'chebtech1'))
-    x = chebpts(m, dom(1:2), 1);   % x grid.
-    y = chebpts(n, dom(3:4), 1);   % y grid.
-    [xx, yy] = ndgrid(x, y);
-elseif ( isa(tech, 'trigtech'))
-    x = trigpts(m, dom(1:2));      % x grid.
-    y = trigpts(n, dom(3:4));      % y grid.
-    [xx, yy] = ndgrid(x, y);
-else
-    error('CHEBFUN:CHEBFUN3:constructor:points2D:tecType', ...
-        'Unrecognized technology');
-end
+x = trigpts(m, dom(1:2));   % x grid.
+%y = trigpts(n, dom(3:4));   % y grid.
+y = linspace(0, pi, n+1).';   % y grid.
+[xx, yy] = ndgrid(x, y);
+
+% if ( isa(tech, 'chebtech2') )
+%     x = chebpts(m, dom(1:2), 2);   % x grid.
+%     y = chebpts(n, dom(3:4), 2);   % y grid.
+%     [xx, yy] = ndgrid(x, y);
+% elseif ( isa(tech, 'chebtech1'))
+%     x = chebpts(m, dom(1:2), 1);   % x grid.
+%     y = chebpts(n, dom(3:4), 1);   % y grid.
+%     [xx, yy] = ndgrid(x, y);
+% elseif ( isa(tech, 'trigtech'))
+%     x = trigpts(m, dom(1:2));      % x grid.
+%     y = trigpts(n, dom(3:4));      % y grid.
+%     [xx, yy] = ndgrid(x, y);
+% else
+%     error('CHEBFUN:CHEBFUN3:constructor:points2D:tecType', ...
+%         'Unrecognized technology');
+% end
 
 end
 
 %%
-function [xx, yy, zz] = points3D(m, n, p, dom, pref)
+function [lam, th, r] = points3D(m, n, p, dom, pref)
 % Get the sample points that correspond to the right grid for a particular
 % technology.
 
 % What tech am I based on?:
-tech = pref.tech();
+%tech = pref.tech();
 
-if ( isa(tech, 'chebtech2') )
-    x = chebpts(m, dom(1:2), 2);   % x grid.
-    y = chebpts(n, dom(3:4), 2);   % y grid.
-    z = chebpts(p, dom(5:6), 2);   % z grid.
-    [xx, yy, zz] = ndgrid(x, y, z); 
-elseif ( isa(tech, 'chebtech1') )
-    x = chebpts(m, dom(1:2), 1);   % x grid.
-    y = chebpts(n, dom(3:4), 1);   % y grid.
-    z = chebpts(p, dom(5:6), 1);   % z grid.
-    [xx, yy, zz] = ndgrid(x, y, z); 
-elseif ( isa(tech, 'trigtech') )
-    x = trigpts(m, dom(1:2));      % x grid.
-    y = trigpts(n, dom(3:4));      % y grid.
-    z = trigpts(p, dom(5:6));      % z grid.
-    [xx, yy, zz] = ndgrid(x, y, z);
-else
-    error('CHEBFUN:CHEBFUN3:constructor:points3D:tecType', ...
-        'Unrecognized technology');
-end
+x = trigpts(m, dom(1:2));   % x grid.
+y = trigpts(n, dom(3:4));   % y grid.
+z = chebpts(p, dom(5:6), 2);   % z grid.
+[lam, th, r] = ndgrid(x, y, z); 
+
+% if ( isa(tech, 'chebtech2') )
+%     x = chebpts(m, dom(1:2), 2);   % x grid.
+%     y = chebpts(n, dom(3:4), 2);   % y grid.
+%     z = chebpts(p, dom(5:6), 2);   % z grid.
+%     [lam, th, r] = ndgrid(x, y, z); 
+% elseif ( isa(tech, 'chebtech1') )
+%     x = chebpts(m, dom(1:2), 1);   % x grid.
+%     y = chebpts(n, dom(3:4), 1);   % y grid.
+%     z = chebpts(p, dom(5:6), 1);   % z grid.
+%     [lam, th, r] = ndgrid(x, y, z); 
+% elseif ( isa(tech, 'trigtech') )
+%     x = trigpts(m, dom(1:2));      % x grid.
+%     y = trigpts(n, dom(3:4));      % y grid.
+%     z = trigpts(p, dom(5:6));      % z grid.
+%     [lam, th, r] = ndgrid(x, y, z);
+% else
+%     error('CHEBFUN:CHEBFUN3:constructor:points3D:tecType', ...
+%         'Unrecognized technology');
+% end
 end
 
 %%
@@ -1026,7 +1038,8 @@ fixedRank = 0;
 pref = chebfunpref();
 fiberDim = [];
 vscaleBnd = [];
-dom = [-1 1 -1 1 -1 1];
+%dom = [-1 1 -1 1 -1 1];
+dom = [-pi pi 0 pi 0 1];
 
 % Preferences structure given?
 isPref = find(cellfun(@(p) isa(p, 'chebfunpref'), varargin));
@@ -1342,7 +1355,7 @@ while ( ( infNorm > tol ) && ( iter < width / factor) ...
     % decomposition:
     [colsBtd{iter+1}, pivotValues2D{iter+1}, rowsBtd{iter+1}, ...
         pivotIndices2D{iter+1}, ifail2DIter] = ...
-        chebfun2ACAv2(slices(:, :, iter+1), globalTol, factor);
+        spherefunACAv2(slices(:, :, iter+1), globalTol, factor);
     
     % Developer Note: Since we use globalTol for slices after 1st 
     % iteration, it might be that these 2D ACA's don't fail, while with a 
@@ -1353,7 +1366,7 @@ while ( ( infNorm > tol ) && ( iter < width / factor) ...
     end
     
     % Update the tensor, i.e., compute the residual tensor:
-    A = A - chebfun3.outerProd(colsBtd{iter+1} * ...
+    A = A - ballfun.outerProd(colsBtd{iter+1} * ...
         (diag(1./(pivotValues2D{iter+1}))) * (rowsBtd{iter+1}.'), ...
         fibers(:,iter+1) ./ PivVal3D);
     % Equivalently, we have: 

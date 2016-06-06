@@ -1,4 +1,4 @@
-classdef chebfun3
+classdef ballfun
 %CHEBFUN3   CHEBFUN3 class for representing functions on [a,b]x[c,d]x[e,g].
 %   Class for approximating functions defined on finite cuboids. The 
 %   function should be smooth.
@@ -77,7 +77,7 @@ end
 %% CLASS CONSTRUCTOR:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 methods
-    function f = chebfun3(varargin)
+    function f = ballfun(varargin)
         % The main CHEBFUN3 constructor!
         
         % Return an empty CHEBFUN3:
