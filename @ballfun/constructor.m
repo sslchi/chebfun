@@ -608,7 +608,7 @@ else
 end
 
 % Perform GE with complete pivoting:
-[pivotVals, pivotLoc, row, col] = completeACA2D(op, tol, 0); % factor = 0, 
+[pivotVals, pivotLoc, row, col] = completeACASpherefun(op, tol, 0); % factor = 0, 
 % because we want the ACA to be applied even if op is not low-rank.
 % In contrast to Chebfun2, we now have op = col*diag(1./pivotVals)*row'.
 end
@@ -626,16 +626,19 @@ if factor ~= 0
     % it zero fro constructionFromDoubles.
     factor = 2;
 end
-[pivotVals, pivotLoc, row, col, ifail2D] = completeACA2D(op, tol, factor); 
+[pivotVals, pivotLoc, row, col, ifail2D] = completeACASpherefun(op, tol, factor); 
 end
 
 %%
 function [pivotValue, pivotElement, rows, cols, ifail2D] = ...
-    completeACA2D(A, tol, factor) 
+    completeACASpherefun(A, tol, factor) 
 % 2D ACA with complete pivoting which is the continuous analogue of 
 % Gaussian elimination with complete pivoting.
 % We attempt to adaptively find the numerical rank of function in the 2D
-% level. This is _almost_ the same as the one in chebfun2/constructor.
+% level. This is _almost_ the same as the one in spherefun/constructor,
+% i.e., the subroutine: 
+%[pivotIndices, pivotArray, removePoles, happyRank] = PhaseOne(A, tol, ...
+%    alpha, factor);
 
 
 % Set up output variables.
@@ -648,7 +651,7 @@ ifail2D = 1;                  % Assume we fail.
 % Main algorithm
 zRows = 0;                  % count number of zero cols/rows.
 [infNorm, ind] = max(abs(reshape(A, numel(A), 1)));
-[row, col] = chebfun3.myind2sub(size(A) , ind);
+[row, col] = ballfun.myind2sub(size(A) , ind);
 
 % Bias toward diagonal for square matrices (see reasoning below):
 if ( ( nx == ny ) && ( max(abs(diag(A))) - infNorm) > -tol )
@@ -684,7 +687,7 @@ while ( ( infNorm > tol ) && ( zRows < width / factor) ...
     
     % Find value and index of next 2D pivot
     [infNorm, ind] = max(abs(A(:))); % Slightly faster
-    [row, col] = chebfun3.myind2sub(size(A), ind);
+    [row, col] = ballfun.myind2sub(size(A), ind);
     
     % Have a bias towards the diagonal of A, so that it can be used as a test
     % for nonnegative definite functions. (Complete GE and Cholesky are the
@@ -810,7 +813,8 @@ function [lam, th, r] = points3D(m, n, p, dom, pref)
 %tech = pref.tech();
 
 x = trigpts(m, dom(1:2));   % x grid.
-y = trigpts(n, dom(3:4));   % y grid.
+%y = trigpts(n, dom(3:4));   % y grid.
+y = linspace(0, pi, n+1).';   % y grid.
 z = chebpts(p, dom(5:6), 2);   % z grid.
 [lam, th, r] = ndgrid(x, y, z); 
 
@@ -927,71 +931,38 @@ end
 end
 
 %%
-function fiberDim = dimCluster(op, dom, vectorize, pref)
-% Choose the right dimension for clustering in Phase 1. The 3 steps are as
-% follows: 
-% 1) Sample OP at a small tensor.
-% 2) Compare all the three modal ranks and find which rank might be the
-%    smallest. We are trying to avoid using lots of points that we need in 
-%    the technique by Bebendorf and Kuske.
-% 3) If there are more than one minimal rank, find the variable that needs
-%    more coefficients to resolve.
-
-grid = 10;
-[xx, yy, zz] = points3D(grid, grid, grid, dom, pref);
-vals = evaluate(op, xx, yy, zz, vectorize);
-
-% Method 1: Using SVD and 1D Chebfun:
-F1 = chebfun3.unfold(vals, 1);
-F2 = chebfun3.unfold(vals, 2);
-F3 = chebfun3.unfold(vals, 3);
-rX = rank(F1.'); % Transpose to have longer columns
-rY = rank(F2.'); % and therefore being faster
-rZ = rank(F3.'); % in MATLAB.
-r = [rX, rY, rZ];
-[ignored, ind] = find(r==min(r));
-if ( numel(ind) == 1 )
-    fiberDim = ind;
-    return
-end
-% More than one minimum ranks exist:
-tol = 1e-3;
-lenX = length(simplify(chebfun(F1(:, 1)), tol));
-lenY = length(simplify(chebfun(F2(:, 1)), tol));
-lenZ = length(simplify(chebfun(F3(:, 1)), tol));
-len = [lenX, lenY, lenZ];
-if ( numel(ind) == 2 )
-    [ignored, index] = max([len(ind(1)), len(ind(2))]);
-    fiberDim = ind(index);
-else % numel(ind) = 3
-    [ignored, fiberDim] = max(len);
-end
-
-%%
-% % Method 2: Using Chebfun2:
-% F1 = chebfun2(chebfun3.unfold(vals, 1), 
-%               [dom(1:2) min(dom(3), dom(5)) max(dom(4), dom(6))]);
-% F2 = chebfun2(chebfun3.unfold(vals, 2), 
-%               [dom(3:4) min(dom(1), dom(5)) max(dom(2), dom(6))]);
-% F3 = chebfun2(chebfun3.unfold(vals, 3), 
-%               [dom(5:6) min(dom(1), dom(3)) max(dom(2), dom(4))]);
-% rX = numel(F1.pivotValues);
-% rY = numel(F2.pivotValues);
-% rZ = numel(F3.pivotValues);
+% function fiberDim = dimCluster(op, dom, vectorize, pref)
+% % Choose the right dimension for clustering in Phase 1. The 3 steps are as
+% % follows: 
+% % 1) Sample OP at a small tensor.
+% % 2) Compare all the three modal ranks and find which rank might be the
+% %    smallest. We are trying to avoid using lots of points that we need in 
+% %    the technique by Bebendorf and Kuske.
+% % 3) If there are more than one minimal rank, find the variable that needs
+% %    more coefficients to resolve.
+% 
+% grid = 10;
+% [xx, yy, zz] = points3D(grid, grid, grid, dom, pref);
+% vals = evaluate(op, xx, yy, zz, vectorize);
+% 
+% % Method 1: Using SVD and 1D Chebfun:
+% F1 = ballfun.unfold(vals, 1);
+% F2 = ballfun.unfold(vals, 2);
+% F3 = ballfun.unfold(vals, 3);
+% rX = rank(F1.'); % Transpose to have longer columns
+% rY = rank(F2.'); % and therefore being faster
+% rZ = rank(F3.'); % in MATLAB.
 % r = [rX, rY, rZ];
 % [ignored, ind] = find(r==min(r));
 % if ( numel(ind) == 1 )
 %     fiberDim = ind;
 %     return
 % end
-% % More than one minimum ranks exist. So, find the variable that needs
-% % largest number of coefficients.
-% F1 = simplify(F1, 1e-3);
-% F2 = simplify(F2, 1e-3);
-% F3 = simplify(F3, 1e-3);
-% [ignored, lenX] = length(F1); % (simplified) degree needed in x
-% [ignored, lenY] = length(F2); % (simplified) degree needed in y
-% [ignored, lenZ] = length(F3); % (simplified) degree needed in z
+% % More than one minimum ranks exist:
+% tol = 1e-3;
+% lenX = length(simplify(chebfun(F1(:, 1)), tol));
+% lenY = length(simplify(chebfun(F2(:, 1)), tol));
+% lenZ = length(simplify(chebfun(F3(:, 1)), tol));
 % len = [lenX, lenY, lenZ];
 % if ( numel(ind) == 2 )
 %     [ignored, index] = max([len(ind(1)), len(ind(2))]);
@@ -999,7 +970,40 @@ end
 % else % numel(ind) = 3
 %     [ignored, fiberDim] = max(len);
 % end
-end
+% 
+% %%
+% % % Method 2: Using Chebfun2:
+% % F1 = chebfun2(chebfun3.unfold(vals, 1), 
+% %               [dom(1:2) min(dom(3), dom(5)) max(dom(4), dom(6))]);
+% % F2 = chebfun2(chebfun3.unfold(vals, 2), 
+% %               [dom(3:4) min(dom(1), dom(5)) max(dom(2), dom(6))]);
+% % F3 = chebfun2(chebfun3.unfold(vals, 3), 
+% %               [dom(5:6) min(dom(1), dom(3)) max(dom(2), dom(4))]);
+% % rX = numel(F1.pivotValues);
+% % rY = numel(F2.pivotValues);
+% % rZ = numel(F3.pivotValues);
+% % r = [rX, rY, rZ];
+% % [ignored, ind] = find(r==min(r));
+% % if ( numel(ind) == 1 )
+% %     fiberDim = ind;
+% %     return
+% % end
+% % % More than one minimum ranks exist. So, find the variable that needs
+% % % largest number of coefficients.
+% % F1 = simplify(F1, 1e-3);
+% % F2 = simplify(F2, 1e-3);
+% % F3 = simplify(F3, 1e-3);
+% % [ignored, lenX] = length(F1); % (simplified) degree needed in x
+% % [ignored, lenY] = length(F2); % (simplified) degree needed in y
+% % [ignored, lenZ] = length(F3); % (simplified) degree needed in z
+% % len = [lenX, lenY, lenZ];
+% % if ( numel(ind) == 2 )
+% %     [ignored, index] = max([len(ind(1)), len(ind(2))]);
+% %     fiberDim = ind(index);
+% % else % numel(ind) = 3
+% %     [ignored, fiberDim] = max(len);
+% % end
+% end
 
 %%
 function [resolvedFibers, resolvedSlice1, resolvedSlice2] = ...
@@ -1071,7 +1075,7 @@ for k = 1:length(varargin)
                 % Interpret this as the user wants a fixed degree chebfun3 
                 % on the domain DOM.
                 len = varargin{k};
-                [xx, yy, zz] = chebfun3.chebpts3(len(1), len(2), len(3), dom);
+                [xx, yy, zz] = ballfun.chebpts3(len(1), len(2), len(3), dom);
                 op = op(xx, yy, zz);
             end
         end
@@ -1089,7 +1093,7 @@ for k = 1:length(varargin)
 end
 
 if ( isCoeffs )
-    op = chebfun3.coeffs2vals(op);
+    op = ballfun.coeffs2vals(op);
 end
 
 % If the vectorize flag is off, do we need to give user a warning?
@@ -1285,13 +1289,13 @@ pseudoLevel = pref.cheb3Prefs.chebfun3eps;
 
 % Set up output variables.
 [n1, n2, n3] = size(A);
-if fiberDim == 1
-    width = min(n1, n2*n3);    % Use to tell us how many pivots we can take
-elseif fiberDim == 2
-    width = min(n2, n1*n3);   
-else
+% if fiberDim == 1
+%     width = min(n1, n2*n3);    % Use to tell us how many pivots we can take
+% elseif fiberDim == 2
+%     width = min(n2, n1*n3);   
+% else
    width = min(n3, n1*n2);
-end
+% end
 pivotValues3D = zeros(1);      % Store an unknown number of Pivot values
 pivotIndices3D = zeros(1, 3);  % Store (col, row, tube) = entries of pivot location
 ifail3D = 1;                   % Assume we fail in 3D ACA
@@ -1347,7 +1351,7 @@ while ( ( infNorm > tol ) && ( iter < width / factor) ...
     % Use the first slice to compute globalTol for 2D ACAs applied to all 
     % slices.
     if iter == 0
-        [xx2D, yy2D] = points2D(n1, n2, dom2D, pref); % ndgrid is used.
+        [xx2D, yy2D] = points2D(n1, n2-1, dom2D, pref); % ndgrid is used.
         globalTol = GetTol2Dv2(xx2D, yy2D, slices(:,:,1), dom2D, pseudoLevel);
     end
     
