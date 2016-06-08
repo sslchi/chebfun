@@ -150,11 +150,20 @@ while ( ~isHappy && ~failure )
             PP(:, 1) = nesting(PP(:, 1));
         else
             [xx, yy] = meshgrid(pivPos(:, 1), myPoints(n, dom(3:4), pref));
+            xx2 = (xx+yy)/2;
+            yy2 = (xx-yy)/2;
+            xx = xx2;
+            yy = yy2;
             colVals = evaluate(op, xx, yy, vectorize);
         end
         if ( ~resolvedRows )
             [m, nesting] = gridRefine( m , pref );
             [xx, yy] = meshgrid(myPoints(m, dom(1:2), pref), pivPos(:, 2));
+            xx2 = (xx+yy)/2;
+            yy2 = (xx-yy)/2;
+            xx = xx2;
+            yy = yy2;
+            
             rowVals = evaluate(op, xx, yy, vectorize);
             % find location of pivots on new grid  (using nesting property).
             PP(:, 2) = nesting(PP(:, 2));
@@ -218,7 +227,8 @@ while ( ~isHappy && ~failure )
     % Sample Test:
     if ( sampleTest )
         % wrap the op with evaluate in case the 'vectorize' flag is on:
-        sampleOP = @(x,y) evaluate(op, x, y, vectorize);
+        %sampleOP = @(x,y) evaluate(op, x, y, vectorize);
+        sampleOP = @(x,y) evaluate(op, (x+y)/2, (x-y)/2, vectorize);
         
         % Evaluate at points in the domain:
         pass = g.sampleTest(sampleOP, absTol, vectorize);
@@ -453,8 +463,17 @@ tech = pref.tech();
 
 if ( isa(tech, 'chebtech2') )
     x = chebpts( m, dom(1:2), 2 );   % x grid.
-    y = chebpts( n, dom(3:4), 2 );
-    [xx, yy] = meshgrid( x, y );
+    y = chebpts( m, dom(3:4), 2 );
+%    [xx, yy] = meshgrid(x, y);
+%     x2 = (x+y)/2;
+%     y2 = (x-y)/2;
+    [xx, yy] = meshgrid(x, y);
+    xx2 = (xx+yy)/2;
+    yy2 = (xx-yy)/2;
+    xx = xx2;
+    yy = yy2;
+    
+    
 elseif ( isa(tech, 'chebtech1') )
     x = chebpts( m, dom(1:2), 1 );   % x grid.
     y = chebpts( n, dom(3:4), 1 );

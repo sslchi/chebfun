@@ -45,6 +45,11 @@ elseif ( isnumeric( x ) && strcmpi(y, ':') ) % f(x, :)
     
 elseif ( isnumeric( x ) && isnumeric( y ) )  % f(x, y)
     
+    x2 = (x+y);
+    y2 = (x-y);
+    x = x2; % MESHGRID makes things strange?
+    y = y2;
+    
     takeTranspose = 0;
     
     % If the evaluation points are derived from meshgrid, then there is a
