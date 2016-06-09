@@ -33,6 +33,9 @@ classdef separableApprox
         % DOMAIN: default is [-1,1] x [-1,1].
         domain = [-1 1 -1 1];
         
+        % Rotation angle used in the constructor.
+        theta
+        
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

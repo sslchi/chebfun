@@ -25,15 +25,15 @@ domain = f.domain;
 
 if ( ~flag )
     % Sample at lots of points if the op is vectorized. 
-    n = 100; 
-    [xeval, yeval] = halton( n, domain );
+    n = 10; 
+    [xeval, yeval] = halton( n, domain./2 );
     
     % Evaluate the op:
     vOp = feval(sampleOP, xeval, yeval);
 else
     % sample on less points if the op is unvectorized. 
     n = 20;
-    [xeval, yeval] = halton( n, domain );    
+    [xeval, yeval] = halton( n, domain./2 );    
     
     % Evaluate the op:
     vOp = zeros(n , 1 );

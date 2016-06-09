@@ -45,8 +45,11 @@ elseif ( isnumeric( x ) && strcmpi(y, ':') ) % f(x, :)
     
 elseif ( isnumeric( x ) && isnumeric( y ) )  % f(x, y)
     
-    x2 = (x+y);
-    y2 = (x-y);
+%     x2 = (x+y);
+%     y2 = (x-y);
+    theta = f.theta;
+    x2 = x*cos(theta)+y*sin(theta);
+    y2 = x*sin(theta)-y*cos(theta);    
     x = x2; % MESHGRID makes things strange?
     y = y2;
     

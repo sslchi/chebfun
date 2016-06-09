@@ -65,11 +65,26 @@ if ( isa(op, 'double') )    % CHEBFUN2( DOUBLE )
     return
 end
 
+grid = minSample;
+k = 10;
+theta = linspace(0,pi,k);
+theta = theta(1:k-1); % remove the last angle, same as theta = 0.
+for i = 1:numel(theta)
+    % Sample function on a Chebyshev tensor grid:
+    [xx, yy] = points2DRot(grid, grid, dom, pref, theta(i));
+    vals = evaluate(op, xx, yy, vectorize);
+    r(i) = rank(vals);
+end
+%r = r
+[~, ind] = min(r);
+theta = theta(ind);
+
 while ( ~isHappy && ~failure )
     grid = minSample;
     
     % Sample function on a Chebyshev tensor grid:
-    [xx, yy] = points2D(grid, grid, dom, pref);
+    %[xx, yy] = points2D(grid, grid, dom, pref);
+    [xx, yy] = points2DRot(grid, grid, dom, pref, theta);
     vals = evaluate(op, xx, yy, vectorize);
     
     % Does the function blow up or evaluate to NaN?:
@@ -150,8 +165,10 @@ while ( ~isHappy && ~failure )
             PP(:, 1) = nesting(PP(:, 1));
         else
             [xx, yy] = meshgrid(pivPos(:, 1), myPoints(n, dom(3:4), pref));
-            xx2 = (xx+yy)/2;
-            yy2 = (xx-yy)/2;
+%             xx2 = (xx+yy)/2;
+%             yy2 = (xx-yy)/2;
+            xx2 = xx*cos(theta)-yy*sin(theta);
+            yy2 = xx*sin(theta)+yy*cos(theta);
             xx = xx2;
             yy = yy2;
             colVals = evaluate(op, xx, yy, vectorize);
@@ -159,8 +176,10 @@ while ( ~isHappy && ~failure )
         if ( ~resolvedRows )
             [m, nesting] = gridRefine( m , pref );
             [xx, yy] = meshgrid(myPoints(m, dom(1:2), pref), pivPos(:, 2));
-            xx2 = (xx+yy)/2;
-            yy2 = (xx-yy)/2;
+%             xx2 = (xx+yy)/2;
+%             yy2 = (xx-yy)/2;
+            xx2 = xx*cos(theta)-yy*sin(theta);
+            yy2 = xx*sin(theta)+yy*cos(theta);
             xx = xx2;
             yy = yy2;
             
@@ -222,13 +241,16 @@ while ( ~isHappy && ~failure )
     g.cols = chebfun(colVals,   dom(3:4), pref);
     g.rows = chebfun(rowVals.', dom(1:2), pref );
     g.pivotLocations = pivPos;
+    g.theta = theta;
     g.domain = dom;
     
     % Sample Test:
     if ( sampleTest )
         % wrap the op with evaluate in case the 'vectorize' flag is on:
         %sampleOP = @(x,y) evaluate(op, x, y, vectorize);
-        sampleOP = @(x,y) evaluate(op, (x+y)/2, (x-y)/2, vectorize);
+        %sampleOP = @(x,y) evaluate(op, (x+y)/2, (x-y)/2, vectorize);
+        sampleOP = @(x,y) evaluate(op, x*cos(theta)-y*sin(theta), ...
+            x*sin(theta)+y*cos(theta), vectorize);
         
         % Evaluate at points in the domain:
         pass = g.sampleTest(sampleOP, absTol, vectorize);
@@ -489,6 +511,43 @@ end
 
 end
 
+%%
+function [xx, yy] = points2DRot(m, n, dom, pref, theta)
+% Get the sample points that correspond to the right grid for a particular
+% technology.
+
+dom = 2*dom;
+
+% What tech am I based on?:
+tech = pref.tech();
+
+if ( isa(tech, 'chebtech2') )
+    x = chebpts( m, dom(1:2), 2 );   % x grid.
+    y = chebpts( m, dom(3:4), 2 );
+%    [xx, yy] = meshgrid(x, y);
+    [xx, yy] = meshgrid(x, y);
+    xx2 = xx*cos(theta)-yy*sin(theta);
+    yy2 = xx*sin(theta)+yy*cos(theta);
+    xx = xx2;
+    yy = yy2;
+    
+    
+elseif ( isa(tech, 'chebtech1') )
+    x = chebpts( m, dom(1:2), 1 );   % x grid.
+    y = chebpts( n, dom(3:4), 1 );
+    [xx, yy] = meshgrid( x, y );
+elseif ( isa(tech, 'trigtech') )
+    x = trigpts( m, dom(1:2) );   % x grid.
+    y = trigpts( n, dom(3:4) );
+    [xx, yy] = meshgrid( x, y );
+else
+    error('CHEBFUN:CHEBFUN2:constructor:points2D:tecType', ...
+        'Unrecognized technology');
+end
+
+end
+
+
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function x = myPoints(n, dom, pref)
@@ -574,6 +633,7 @@ end
 
 % Determine the domain, fixed rank, and fixed length
 dom = [-1, 1, -1, 1];
+%dom = 2*[-1, 1, -1, 1]; % work on a biggrt domain than the one asked...
 fixedRank = 0;
 fixedLength = 0;
 while ( numel(varargin) > 0 && isnumeric(varargin{1}) )
