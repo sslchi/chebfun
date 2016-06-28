@@ -140,12 +140,11 @@ classdef (InferiorClasses = {?chebfun}) operatorBlock < linBlock
                 % Output is a multiplication operator if B was.
                 C.isNotDiffOrInt = B.isNotDiffOrInt;
 
-                % Difforder of the returned OPERATORBLOCK.
-                if ( C.iszero )
-                    C.diffOrder = 0;
-                else
-                    C.diffOrder = B.diffOrder;
-                end
+                % Difforder of the returned OPERATORBLOCK. Note that even though
+                % C is a zero operator, we retain the diffOrder of B, as it
+                % might just have happened that we multiplied by a zero initial
+                % guess.
+                C.diffOrder = B.diffOrder;
                 
             elseif ( isnumeric(B) )
                 % Swap arguments.
