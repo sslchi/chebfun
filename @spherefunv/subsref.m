@@ -1,4 +1,4 @@
-function varargout = subsref( F, ref )
+function varargout = subsref(F, ref)
 %SUBSREF   SPHEREFUNV subsref.
 % 
 % ( )
@@ -16,8 +16,8 @@ function varargout = subsref( F, ref )
 % { }
 %    Throws an error.
 
-% check for empty SPHEREFUNV object. 
-if ( isempty( F ) )
+% Check for empty SPHEREFUNV object. 
+if ( isempty(F) )
    varargout = {[]};
    return
 end
@@ -27,17 +27,16 @@ indx = ref(1).subs;
 switch ( ref(1).type )
     
     case '.'
-        if ( numel( ref ) == 1 )
+        if ( numel(ref) == 1 )
             % This is a get call to get a property. 
             varargout = { get(F, indx) };
         else
-            % Probably .^ or maybe .* 
-            t2 = index(2).type;
+            t2 = ref(2).type;
             if ( strcmp(t2,'.') )
                 out = get(F, indx, ref(2).subs{:});
             else
                 out = get(F, indx);
-                out = out( ref(2).subs{:} );
+                out = out(ref(2).subs{:});
             end
             if ( numel(ref) > 2 )
                 varargout = {subsref(out, ref(3:end))};
@@ -68,7 +67,7 @@ switch ( ref(1).type )
                     varargout = F.components(3);
                 else
                     error('SPHEREFUN:SPHEREFUNV:subsref:index', ...
-                        'SPHEREFUNV only contains three components');
+                        'SPHEREFUNV only contains three components.');
                 end
             end
         end
@@ -77,6 +76,12 @@ switch ( ref(1).type )
         error('SPHEREFUN:SPHEREFUNV:subsref:unexpectedType', ...
             ['??? Unexpected index.type of ' index(1).type]);
         
+end
+
+% Recurse down: 
+if ( numel( ref ) > 1 )
+   ref(1) = []; 
+   varargout = { subsref( varargout{ : }, ref ) }; 
 end
 
 end

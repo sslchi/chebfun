@@ -1,22 +1,23 @@
-function f = diff( f, varargin )
-% DIFF  Tangential derivative of a spherefun in Cartesian coordinates.
+function f = diff(f, varargin)
+%DIFF   Tangential derivative of a spherefun in Cartesian coordinates.
+%   F = DIFF(F) computes the first tangential derivative of F with respect to x.
+%   This is the projection of the surface gradient of f in the x-direction.
 %
-%  F = DIFF( F ) computes the first tangential derivative of F with respect
-%  to x.  This is the projection of the surface gradient of f in the
-%  x-direction
-%  
-%  F = DIFF( F, DIM )  computes the first tangential derivative of F. If
-%  DIM = 1, the tangential derivative is taken in the x-direction. If DIM =
-%  2, the tangential derivative is taken in the y-direction and if DIM = 3,
-%  the tangential derivative is taken in the z-direction.
+%   F = DIFF(F, DIM) computes the first tangential derivative of F. If DIM = 1,
+%   the tangential derivative is taken in the x-direction. If DIM = 2, the
+%   tangential derivative is taken in the y-direction and if DIM = 3, the
+%   tangential derivative is taken in the z-direction.
 %
-%  F = DIFF( F, DIM, K) computes the kth tangential derivatives of F in the
-%  variable given by DIM.
+%   F = DIFF(F, DIM, K) computes the Kth tangential derivatives of F in the
+%   variable given by DIM.
 %
-%  See also GRADIENT, LAPLACIAN
+% See also GRADIENT, LAPLACIAN.
+
+% Copyright 2016 by The University of Oxford and The Chebfun Developers.
+% See http://www.chebfun.org/ for Chebfun information.
 
 % Check for empty:
-if ( isempty( f ) )
+if ( isempty(f) )
     return
 end 
 
@@ -33,26 +34,26 @@ else
 end
 
 if ( dim ~= 1 && dim ~= 2 && dim ~= 3 )
-    error('SPHEREFUN:DIFF:DIM', 'Unrecognized coordinate dimension');
+    error('SPHEREFUN:DIFF:DIM', 'Unrecognized coordinate dimension.');
 end
 
-if ( abs( K - round(K) ) > eps )
-    error('SPHEREFUN:DIFF:DIFFORDER', 'Fractional derivatives not allowed')
+if ( abs(K - round(K)) > eps )
+    error('SPHEREFUN:DIFF:DIFFORDER', 'Fractional derivatives not allowed.')
 end
-K = round( K );
+K = round(K);
 
 % We are going to work at the tech level to make things faster.
-[C, D, R] = cdr( f );
+[C, ~, R] = cdr(f);
 
 % Do everything with even length columns since then no special
 % modifications are required for dividing the cosine/sine series expansion.
-n = length(C)+mod(length(C),2);
+n = length(C) + mod(length(C), 2);
 
 % The variable coefficients in the definitions of the derivatives means
 % that the length of the columns and rows will increase by one wave number
 % after taking the derivatives with respect to x and y. The z derivative
-% only increases the columns wave number by 1. The means we need to pad the
-% coefficients with on extra zero negative and positive coefficient before
+% only increases the columns wave number by 1. This means we need to pad the
+% coefficients with one extra zero negative and positive coefficient before
 % doing the computations.
 % if dim ~= 3
 %     m = length(R)+2;  % Pad rows
@@ -125,10 +126,10 @@ n = length(Ccfs);
 m = length(Rcfs);
 
 % Matrices for multiplying by sin/cos in coefficient space.
-Msinn = .5i*spdiags(ones(n,1)*[-1,1],[-1 1],n,n);
-Msinm = .5i*spdiags(ones(m,1)*[-1,1],[-1 1],m,m);
-Mcosn = .5*spdiags(ones(n,1)*[1,1],[-1 1],n,n);
-Mcosm = .5*spdiags(ones(m,1)*[1,1],[-1 1],m,m);
+Msinn = .5i*spdiags(ones(n,1)*[-1,1], [-1 1], n, n);
+Msinm = .5i*spdiags(ones(m,1)*[-1,1], [-1 1], m, m);
+Mcosn = .5*spdiags(ones(n,1)*[1,1], [-1 1], n, n);
+Mcosm = .5*spdiags(ones(m,1)*[1,1], [-1 1], m, m);
 
 % Differentiation matrix
 DFn = trigspec.diffmat(n,1); 
@@ -139,7 +140,7 @@ dCdth = DFn*Ccfs;
 dRdlam = DFm*Rcfs;
 
 % dx and dy involve two terms while dz is only one so we handle the cases
-% separately
+% separately:
 if ( dim == 1 ) || ( dim == 2)
     if ( dim == 1 )            % x
         % Calculate -sin(lam)./sin(th) dfdlam

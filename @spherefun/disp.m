@@ -3,7 +3,11 @@ function disp(F)
 % 
 % See also DISPLAY.
 
-loose = strcmp( get(0, 'FormatSpacing'), 'loose' );
+% Copyright 2016 by The University of Oxford and The Chebfun Developers.
+% See http://www.chebfun.org/ for Chebfun information.
+
+
+loose = strcmp(get(0, 'FormatSpacing'), 'loose');
 
 % Get display style and remove trivial empty CHEBFUN2 case. 
 if ( isempty(F) )
@@ -18,7 +22,7 @@ end
 len = length(F);                          % Numerical rank
 vscl = vscale(F);                         % vertical scale
 
-% Display the information: 
+% Display the information:
 disp('   spherefun object')
 fprintf('       domain        rank    vertical scale\n');
 fprintf('     unit sphere  %6i          %3.2g\n', len, vscl);

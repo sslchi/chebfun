@@ -1,18 +1,21 @@
-function F = power( F, G )
-%.^ Componentwise power for SPHEREFUNV.
+function F = power(F, G)
+%.^   Componentwise power for SPHEREFUNV.
 %   F.^G where F is a SPHEREFUNV and G is a double returns the result from
 %   componentwise powers.
 %
 %   F.^G where F is a double and G is a SPHEREFUN returns from componentwise
 %   powers.
 
+% Copyright 2016 by The University of Oxford and The Chebfun Developers.
+% See http://www.chebfun.org/ for Chebfun information.
+
 % Empty check:
-if ( isempty( F ) || isempty( G ) )
+if ( isempty(F) || isempty(G) )
     F = spherefunv;
     return
 end
 
-if ( isa( F ,'double' ) )       % scalar . ^ SPHEREFUNV
+if ( isa(F ,'double') )       % scalar . ^ SPHEREFUNV
     
     if ( numel(F) == 1 )
         scalar = F;
@@ -24,12 +27,12 @@ if ( isa( F ,'double' ) )       % scalar . ^ SPHEREFUNV
         error('SPHEREFUN:SPHEREFUNV:power:double', 'Dimension mismatch.');
     end
     
-elseif ( isa(G, 'double') )      % SPHEREFUNV . ^ scalar
+elseif ( isa(G, 'double') )    % SPHEREFUNV . ^ scalar
     
     if ( numel(G) == 1 )
         scalar = G;
-        for jj = 1 : 3
-            F.components{jj} = power( F.components{jj}, scalar );
+        for jj = 1:3
+            F.components{jj} = power(F.components{jj}, scalar);
         end
     else
         error('SPHEREFUN:SPHEREFUNV:power:double', ...
