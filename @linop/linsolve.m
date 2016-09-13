@@ -74,6 +74,9 @@ elseif ( isnumeric(f) )
     f = chebmatrix(mat2cell(f));
 end
 
+% Get delta info from f:
+deltas = getDeltas(f);
+
 % Use a given discretization, or create one?
 if ( isempty(disc) )
     % Construct the current globally set discretization:
@@ -81,7 +84,7 @@ if ( isempty(disc) )
     % What values for the discretization do we want to consider?
     dimVals = disc.dimensionValues(prefs);
     % Update the domain if new breakpoints are needed:
-    disc.domain = domain.merge(disc.domain, f.domain);
+    disc.domain = domain.merge(sort([disc.domain, f.domain, deltas.loc]));
     % Update the dimensions to work with the correct number of breakpoints
     disc.dimension = repmat(dimVals(1), 1, numel(disc.domain) - 1);
     dimVals(1) = [];
@@ -95,7 +98,7 @@ end
 
 % Derive automatic continuity conditions if none were given.
 if ( isempty(L.continuity) )
-    L = deriveContinuity(L, disc.domain);
+    L = deriveContinuity(L, disc.domain, 0, deltas);
     disc.source = L;
 end
 

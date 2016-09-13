@@ -1,4 +1,4 @@
-function L = deriveContinuity(L, dom, makePeriodic)
+function L = deriveContinuity(L, dom, makePeriodic, deltas)
 %DERIVECONTINUITY Continuity conditions in a piecewise domain.
 %   L = DERIVECONTINUITY(L) examines the domain of L and the differential
 %   orders of the variables in the system, in order to deduce and encode
@@ -21,14 +21,19 @@ function L = deriveContinuity(L, dom, makePeriodic)
 %  Copyright 2016 by The University of Oxford and The Chebfun Developers.
 %  See http://www.chebfun.org/ for Chebfun information.
 
-if ( nargin < 3 )
-    makePeriodic = false;
-    if ( nargin < 2 )
-        dom = [];
+% TODO: Document for delta functions.
+
+if ( nargin < 4 )
+    deltas = struct('loc', [], 'mag', []);
+    if ( nargin < 3 )
+        makePeriodic = false;
+        if ( nargin < 2 )
+            dom = [];
+        end
     end
 end
 
-dom = domain.merge(dom, L.domain);
+dom = domain.merge(sort([dom, L.domain, deltas.loc]));
 
 diffOrd = L.diffOrder;          % order of each block
 diffOrd = max(diffOrd, [], 1);  % max order per variable
@@ -76,9 +81,18 @@ if ( ( max(diffOrd) > 0 ) && ( ~isempty(left) ) )
         for m = 0:diffOrd(var)-1    % up to this variable's diff. order
             for k = 1:length(left)  % for each point
                 B(var) = C{m+1, k}; % right/left difference in mth deriv.
-                cont = cont.append(B, 0);
+                
+                % If there is an impulse (delta function) then we enforce a jump
+                % in the (n-1)st derivative with the appropriate magnitude.
+                if ( m == diffOrd(var)-1 && any(deltas.loc == left(k)))
+                    idx = deltas.loc == left(k);
+                    cont = cont.append(B, deltas.mag(idx));
+                else
+                    cont = cont.append(B, 0);
+                end
+                
             end
-        end
+        end        
     end
 end
 
@@ -86,7 +100,7 @@ L.continuity = cont;
 
 end
 
-function C = domainContinuity(dom, maxorder,left, right)
+function C = domainContinuity(dom, maxorder, left, right)
 % Returns expressions of continuity at the breakpoints of the domain of L.
 %   C{m,k} has the (m-1)th-order derivative at breakpoint k
 
