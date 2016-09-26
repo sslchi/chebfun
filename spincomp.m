@@ -184,6 +184,7 @@ set(gca, 'fontsize', 16), axis([left right down up])
 xlabel('Computer time (s)'), ylabel(sprintf('Relative error at t = %.3f', TF))
 legend(labels, 'Location', 'NorthEast')
 
+saveas(gcf, schemes{2})
 end
 
 function out = isNanTest(u, dim)
