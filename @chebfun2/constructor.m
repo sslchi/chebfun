@@ -66,7 +66,8 @@ if ( isa(op, 'double') )    % CHEBFUN2( DOUBLE )
 end
 
 grid = minSample;
-k = 10;
+grid = 5;
+k = 13; % This makes sure pi/4 is close to one of the ratoations
 theta = linspace(0,pi,k);
 theta = theta(1:k-1); % remove the last angle, same as theta = 0.
 for i = 1:numel(theta)
@@ -74,6 +75,10 @@ for i = 1:numel(theta)
     [xx, yy] = points2DRot(grid, grid, dom, pref, theta(i));
     vals = evaluate(op, xx, yy, vectorize);
     r(i) = rank(vals);
+    subplot(1,2,1), plot(xx,yy,'o'), title('grid points')
+    subplot(1,2,2), contourf(xx,yy,vals), 
+    title(['samples, rank = ' num2str(r(i))], 'fontsize',10)
+    shg
 end
 %r = r
 [~, ind] = min(r);
@@ -84,8 +89,34 @@ while ( ~isHappy && ~failure )
     
     % Sample function on a Chebyshev tensor grid:
     %[xx, yy] = points2D(grid, grid, dom, pref);
+    [xx0, yy0] = points2DRot(grid, grid, dom, pref, 0);
+    vals0 = evaluate(op, xx0, yy0, vectorize);
+    
+    subplot(2,3,1), plot(xx0,yy0,'o'), title('original gridpts')
+    subplot(2,3,2), contourf(xx0,yy0,vals0), 
+    title(['original samples, rank = ' num2str(rank(vals0))], 'fontsize',10)
+
+    
     [xx, yy] = points2DRot(grid, grid, dom, pref, theta);
+    subplot(2,3,3), contourf(xx,yy,vals0), 
+    title(['original samples, rotated gridpts, rank = ' num2str(rank(vals0))], 'fontsize',10)
+
+    
     vals = evaluate(op, xx, yy, vectorize);
+    
+    subplot(2,3,4), plot(xx,yy,'o'), title('rotated gridpts')
+    subplot(2,3,5), contourf(xx,yy,vals), 
+    title(['rotated samples, rank = ' num2str(rank(vals))], 'fontsize',10)
+    subplot(2,3,6), contourf(vals) % = contourf(xx0,yy0,vals)
+    title(['rotated samples, original gridpts, rank = ' num2str(rank(vals))], 'fontsize',10)
+%     vals2 = evaluate(op, xx2, yy2, vectorize);
+%     subplot(1,2,1), plot(xx2,yy2,'o'), title('grid points')
+%     subplot(1,2,2), contourf(xx2,yy2,vals2), 
+    
+    figure
+    angle = theta*180/pi;
+    valsimrot = imrotate_me(vals0,angle);
+    contourf(valsimrot), shg
     
     % Does the function blow up or evaluate to NaN?:
     vscale = max(abs(vals(:)));
@@ -124,6 +155,9 @@ while ( ~isHappy && ~failure )
             strike = strike + 1;
         end
     end
+    % Now, we have a CDR decomposition of vals.
+    
+    
     
     % If the rank of the function is above maxRank then stop.
     if ( grid > factor*(maxRank-1) + 1 )
