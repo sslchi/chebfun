@@ -150,12 +150,15 @@ S = spinopsphere(pdechar);
 if ( strcmpi(pdechar, 'AC') == 1 )
     dt = 2e-1;
     N = 64;
+    pref.Nplot = 256;
 elseif ( strcmpi(pdechar, 'GL') == 1 )
     dt = 2e-1;
     N = 128;
+    pref.Nplot = 256;
 elseif ( strcmpi(pdechar, 'NLS') == 1 )
     dt = 1e-2;
-    N = 64;
+    N = 128;
+    pref.Nplot = 256;
     pref.colormap = 'jet';
 end
 

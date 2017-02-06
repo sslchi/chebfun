@@ -160,10 +160,12 @@ S = spinop2(pdechar);
 if ( strcmpi(pdechar, 'GL2') == 1 )
     dt = 2e-1;
     N = 64;
+    pref.Nplot = 256;
 elseif ( strcmpi(pdechar, 'GS2') == 1 )
     dt = 4;
     pref.iterplot = 8;
     N = 64;
+    pref.Nplot = 256;
 elseif ( strcmpi(pdechar, 'Schnak2') == 1 )
     dt = 5e-1;
     pref.iterplot = 10;

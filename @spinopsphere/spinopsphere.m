@@ -93,16 +93,17 @@ end
 
         % Allen-Cahn equation:
         if ( strcmpi(pdechar, 'AC') == 1 )
-            L = @(u) 1e-2*lap(u);
+            L = @(u) 5e-3*lap(u);
             N = @(u) u - u.^3;
-            tspan = [0 60];
-            u0 = spherefun(@(x,y,z) cos(cosh(5*x.*z)-10*y));
+            tspan = [0 40];
+            u0 = spherefun(@(x,y,z) cos(cosh(8*x.*z)-10*y));
             
         % Ginzburg-Landau equation:
         elseif ( strcmpi(pdechar, 'GL') == 1 )
             L = @(u) 1e-3*lap(u);
             N = @(u) u - (1 + 1.5i)*u.*(abs(u).^2);
-            u0 = @(x,y,z) cos(3*x)+cos(3*y)+cos(3*z);
+            w = 7;
+            u0 = @(x,y,z) cos(w*x)+cos(w*y)+cos(w*z);
             tt = pi/8; c = cos(tt); s = sin(tt);
             u0 = 1/3*spherefun(@(x,y,z) u0(c*x-s*z,y,s*x+c*z)); 
             tspan = [0 30];
@@ -111,7 +112,7 @@ end
         elseif ( strcmpi(pdechar, 'NLS') == 1 )
             L = @(u) 1i*lap(u);
             N = @(u) 1i*u.*abs(u).^2;
-            tspan = [0 10];
+            tspan = [0 2];
             A = 2; B = 1;
             u0 = @(lam,th) (2*B^2./(2 - sqrt(2)*sqrt(2-B^2)*cos(A*B*th)) - 1)*A;
             u0 = spherefun(u0);
