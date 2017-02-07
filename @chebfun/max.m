@@ -20,13 +20,13 @@ function [y, x] = max(f, flag, dim)
 %
 %   MAX(F, [], DIM) computes the maximum of the CHEBFUN F in the dimension DIM.
 %   If DIM = 1 and F is a column CHEBFUN or DIM = 2 and F is a row CHEBFUN, this
-%   is equivalent to MAX(F). Othewise, MAX(F, [], DIM) returns a CHEBFUN which
+%   is equivalent to MAX(F). Otherwise, MAX(F, [], DIM) returns a CHEBFUN which
 %   is the maximum across the discrete dimension of F. For example, if F is a
 %   quasimatrix with two columns, MAX(F, [], 2) = MAX(F(:,1), F(:,2)).
 %
 % See also MIN, MINANDMAX, ROOTS.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 % Trivial empty case.
@@ -84,7 +84,7 @@ function [y, x] = globalMax(f)
 % Call MINANDMAX():
 [y, x] = minandmax(f);
 
-% Extract the minimum:
+% Extract the maximum:
 y = y(2,:);
 x = x(2,:);
 
@@ -119,7 +119,7 @@ for k = 1:numel(f)
     %
     % [TODO]:  What if the 2nd derivative is zero, so that rounding error
     % precludes us from accurately determining the sign?
-    smallEndDer = abs(dfk_ends) < 10*vscale(dfk)*epslevel(dfk);
+    smallEndDer = abs(dfk_ends) < 1e3*vscale(dfk)*eps;
     endptMaxLoc(smallEndDer) = feval(dfk2, ends(smallEndDer)) < 0;
 
     maximaLoc(1) = endptMaxLoc(1);

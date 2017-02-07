@@ -70,9 +70,17 @@ g_op = @(x) sin(x);
 g = bndfun(g_op, data, pref);
 try
     h = f - g; %#ok<NASGU>
-    pass(18) = false;
+    if ( verLessThan('matlab', '9.1') )
+        pass(18) = false;
+    else
+        pass(18) = true;
+    end
 catch ME
-    pass(18) = strcmp(ME.message, 'Matrix dimensions must agree.');
+    if ( verLessThan('matlab', '9.1') )
+        pass(18) = strcmp(ME.message, 'Matrix dimensions must agree.');
+    else
+        pass(18) = false;
+    end
 end
     
 %% 
@@ -84,7 +92,7 @@ h1_vals = feval(h1, x);
 h2 = bndfun(@(x) x - (cos(x) - 1), data, pref);
 h2_vals = feval(h2, x);
 pass(19) = ( norm(h1_vals - h2_vals, inf) < ...
-    1e1*get(h1, 'epslevel').*get(h1, 'vscale') );
+    1e1*eps*get(h1, 'vscale') );
 
 %% 
 % Check that subtracting a BNDFUN and an unhappy BNDFUN gives an
@@ -117,7 +125,8 @@ h = f - g;
 hVals = feval(h, x);
 hExact = oph(x);
 err = hVals - hExact;
-pass(22) = norm(err, inf) < get(h,'epslevel').*get(h,'vscale');
+pass(22) = norm(err, inf) < 1e1*eps*get(h,'vscale');
+
 
 end
 
@@ -130,7 +139,7 @@ function result = test_sub_function_and_scalar(f, f_op, alpha, x)
     result(1) = isequal(g1, -g2);
     g_exact = @(x) f_op(x) - alpha;
     result(2) = norm(feval(g1, x) - g_exact(x), inf) < ...
-        10*max(get(f,'vscale').*get(g1, 'epslevel'));
+        10*max(get(f,'vscale')*eps);
 end
 
 %% 
@@ -143,5 +152,6 @@ function result = test_sub_function_and_function(f, f_op, g, g_op, x)
     h_exact = @(x) f_op(x) - g_op(x);
     norm(feval(h1, x) - h_exact(x), inf);
     result(2) = norm(feval(h1, x) - h_exact(x), inf) <= ...
-        10*max(get(h1,'vscale').*get(h1,'epslevel'));
+        100*max(get(h1,'vscale')*eps);
+        
 end

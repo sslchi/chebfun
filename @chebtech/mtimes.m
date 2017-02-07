@@ -7,7 +7,7 @@ function f = mtimes(f, c)
 %
 % See also TIMES.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 if ( isempty(f) || isempty(c) )     % CHEBTECH * [] = []
@@ -32,25 +32,11 @@ elseif ( isa(c, 'double') )         % CHEBTECH * double
             'Inner matrix dimensions must agree.');
     end
     
+    % Multiply the coefficients:
     f.coeffs = f.coeffs*c;
-    if ( numel(c) == 1 )
-        % See CHEBTECH CLASSDEF file for documentation on this.
-        f.vscale = f.vscale*abs(c);
-        f.epslevel = f.epslevel + eps;
-    else
-        % See CHEBTECH CLASSDEF file for documentation on this.
-        vscaleNew = getvscl(f);
-        f.epslevel = ((f.epslevel.*f.vscale)*abs(c))./vscaleNew;
-        f.vscale = vscaleNew;
 
-        % Assume condition number 1.
-%         glob_acc = max(f.epslevel.*f.vscale);
-%         f.vscale = getvscl(f);
-%         f.epslevel = glob_acc./f.vscale;
-    end
-    
     % If the vertical scale is zero, set the CHEBTECH to zero:
-    if ( all(f.vscale == 0) )
+    if ( all(vscale(f) == 0) )
         f.coeffs = zeros(1, size(f.coeffs, 2));
     end
     

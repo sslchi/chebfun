@@ -1,5 +1,5 @@
 function [x, w, v, t] = legpts(n, int, meth)
-%LEGPTS    Legendre points and Gauss-Legendre Quadrature Weights.
+%LEGPTS    Legendre points and Gauss-Legendre quadrature weights.
 %   LEGPTS(N) returns N Legendre points X in (-1,1).
 %
 %   [X, W] = LEGPTS(N) returns also a row vector W of weights for Gauss-Legendre
@@ -22,13 +22,14 @@ function [x, w, v, t] = legpts(n, int, meth)
 %    METHOD = 'GW' uses the traditional Golub-Welsch eigenvalue method,
 %     which is maintained mostly for historical reasons.
 %
-%   [X, W, V, T] = LEGPTS(N) returns also the arccos of the nodes, T = acos(X).
-%   In some situations (in particular with 'ASY') these can be computed to a
-%   much better relative precision than X.
+%   [X, W, V, T] = LEGPTS(...) returns also the arccos of the nodes (scaled to
+%   lie in [-1, 1] if the INTERVAL argument is used), T = acos(X).  In some
+%   situations (in particular with 'ASY') these can be computed to a much
+%   better relative precision than X.
 %
-% See also CHEBPTS, JACPTS, LOBPTS, RADAUPTS, HERMPTS, LAGPTS, and FOURPTS.
+% See also CHEBPTS, JACPTS, LOBPTS, RADAUPTS, HERMPTS, LAGPTS, and TRIGPTS.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,29 +61,6 @@ interval = [-1, 1];
 method = 'default';
 method_set = nargin == 3;
 
-% Deal with trivial cases:
-if ( n < 0 )
-    error('CHEBFUN:legpts:nNegative', ...
-        'First input should be a positive number.');
-elseif ( n == 0 )   % Return empty vectors if n == 0:
-    x = [];
-    w = [];
-    v = [];
-    t = [];
-    return
-elseif ( n == 1 )
-    x = 0;
-    w = 2;
-    v = 1;
-    t = 1;
-    return
-elseif ( n == 2 )
-    x = [-1 ; 1]/sqrt(3);
-    w = [1 1];
-    v = [1 ; -1];
-    t = acos(x);
-    return
-end
 
 % Check the inputs:
 if ( nargin > 1 )
@@ -116,6 +94,31 @@ if ( nargin > 1 )
 end
 if ( any(isinf(interval)) )
     error('CHEBFUN:legpts:interval', 'Unbounded intervals are not supported.');
+end
+
+% Deal with trivial cases:
+if ( n < 0 )
+    error('CHEBFUN:legpts:nNegative', ...
+        'First input should be a positive number.');
+elseif ( n == 0 )   % Return empty vectors if n == 0:
+    x = [];
+    w = [];
+    v = [];
+    t = [];
+    return
+elseif ( n == 1 )
+    x = mean(interval);
+    w = diff(interval);
+    v = 1;
+    t = pi/2;
+    return
+elseif ( n == 2 )
+    x0 = [-1 ; 1]/sqrt(3);
+    x = diff(interval)/2 * (x0+1) + interval(1); % map from [-1,1] to interval. 
+    w = [1 1]*diff(interval)/2;
+    v = [1 ; -1];
+    t = acos(x0);
+    return
 end
 
 if ( n <= 20 )
@@ -266,7 +269,7 @@ function [x, w, v, t] = asy(n, nout)
 
 % Compute roots of BesselJ(0, x);
 m = ceil(n/2);
-jk = bessel0Roots(m);
+jk = besselroots(0,m);
 
 % Useful values:
 vn = 1./(n + .5);
@@ -313,7 +316,7 @@ else
     x = [-x(1:end-1) ; 0 ; x(end-1:-1:1)];
     w = [w(1:end) ; w(end-1:-1:1)].';
     v = [v(1:end) ; v(end-1:-1:1)];
-    t = [pi-t ; pi/2 ; t(end-1:-1:1)];
+    t = [pi-t ; t(end-1:-1:1)];
 end
 
     function [x, t] = legpts_nodes()
@@ -421,54 +424,8 @@ end
 
 end
 
-function jk = bessel0Roots(m)
-%BESSEL0ROOTS    Roots of the function bessel(0,x).
-% BESSEL0ROOTS(M) returns the first M roots of besselj(0, x).
-
-% Initialise storage:
-jk = zeros(m, 1);
-
-%%
-% First 20 roots are precomputed (using Wolfram Alpha):
-jk(1:20) = [2.4048255576957728
-            5.5200781102863106
-            8.6537279129110122
-            11.791534439014281
-            14.930917708487785
-            18.071063967910922
-            21.211636629879258
-            24.352471530749302
-            27.493479132040254
-            30.634606468431975
-            33.775820213573568
-            36.917098353664044
-            40.058425764628239
-            43.199791713176730
-            46.341188371661814
-            49.482609897397817
-            52.624051841114996
-            55.765510755019979
-            58.906983926080942
-            62.048469190227170];
-if ( m <= 20 )
-    jk = jk(1:m);
-    return
-end
-
-%%
-% Use McMahon's expansion for the remainder (NIST, 10.21.19):
-p = [1071187749376/315, 0, -401743168/105, 0, 120928/15, 0, -124/3, 0, 1, 0];
-k = (21:m).';
-ak = pi*(k-.25);
-% jk(k) = ak + polyval(p, .125./ak);
-ak82 = (.125./ak).^2;
-jk(k) = ak + .125./ak.*(1 + ak82.*(p(7) + ak82.*(p(5) + ak82.*(p(3) + ...
-    ak82.*p(1)))));
-
-end
-
 function Jk2 = bessel12atj0k(m)
-%BESSEL12ATJ0k   Evalute besselj(1,x).^2 at roots of besselj(0,x).
+%BESSEL12ATJ0k   Evaluate besselj(1,x).^2 at roots of besselj(0,x).
 % BESSEL12ATJ0K(M) return besselj(1, bessel0Roots(m)).^2.
 
 % Initialise storage:
@@ -498,5 +455,4 @@ c = [-171497088497/15206400, 461797/1152, -172913/8064, 151/80, -7/24, 0, 2];
 % Jk2(k) = 1./(pi*ak).*polyval(c, ak2inv);
 Jk2(k) = 1./(pi*ak).*(c(7) + ak2inv.^2.*(c(5) + ak2inv.*(c(4) + ...
     ak2inv.*(c(3) + ak2inv.*(c(2)+ak2inv.*c(1))))));
-
 end

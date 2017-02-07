@@ -3,7 +3,7 @@ function u0 = fitBCs(L, prefs)
 %   U0 = FITBCS(L) Returns a CHEBMATRIX which will satisfy the BCs
 %        and other conditions of the linop L.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -16,9 +16,9 @@ function u0 = fitBCs(L, prefs)
 %  obtained from the iszero information of the linearised BCs in the linop L.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Fix the discretization to @colloc2, so that we can be sure we always get the
-% same initial guesses for Newton iteration.
-prefs.discretization = @colloc2;
+% Fix the discretization to @chebcolloc2, so that we can be sure we always get 
+% the same initial guesses for Newton iteration.
+prefs.discretization = @chebcolloc2;
 
 % Store the total number of interior breakpoints
 dom = L.domain;
@@ -33,6 +33,14 @@ end
 % Number of variables appearing in the problem
 numVar = size(L, 2);
 isFun = isFunVariable(L);
+
+% If we have a problem where there is no integration or differentiation, we
+% construct a 0 CHEBMATRIX of correct size to use as an initial guess:
+if ( all(all(L.isNotDiffOrInt)) )
+    zeroFun = chebfun(@(x) 0*x, dom);
+    u0 = chebmatrix(repmat({zeroFun}, numVar, 1));
+    return
+end
 
 % We will construct a low-degree polynomial for each unknown function in the
 % problem. The degree of the polynomial depends on the number of conditions that
@@ -138,14 +146,14 @@ u0 = chebmatrix(u0);
 end
 
 function u = mypartition(disc, values, dimAdjust)
-%CHEBDISCRETIZATION.PARTITION   Partition values to appropriate variables.
-%   U = CHEBDISCRETIZATION.PARTITION(DISC, VALUES) will, given a vector or
+%OPDISCRETIZATION.PARTITION   Partition values to appropriate variables.
+%   U = OPDISCRETIZATION.PARTITION(DISC, VALUES) will, given a vector or
 %   matrix (columnwise) VALUES of values corresponding to all the discretized
 %   variables and scalars in a system DISC, convert to a cell-valued partition
 %   of individual variables in the system. I.e., deduce the variable boundaries
 %   within the discretization.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 % TODO: Document dimAdjust.

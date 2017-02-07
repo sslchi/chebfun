@@ -1,21 +1,37 @@
 function out = chebcoeffs(f, varargin)
-%CHEBCOEFFS   Chebyshev polynomial coefficients of a CHEBFUN.
-%   A = CHEBCOEFFS(F, N) returns the first N Chebyshev coefficients of F, i.e.,
-%   the row vector such that F = ... + A(1) T_N(x) + ... + A(N) T_1(x) +
-%   A(N+1) T_0(x), where T_M(x) denotes the M-th Chebyshev polynomial.
+%CHEBCOEFFS   Chebyshev coefficients of a CHEBFUN.
+%   A = CHEBCOEFFS(F) returns the Chebyshev coefficients of F assuming 
+%   it is a global (not piecewise) chebfun.  This is column vector of
+%   coefficients such that  F = A(1) T_0(x) + ... + A(N) T_(N-1)(x),
+%   where N is the length of F.
 %
-%   If F is a smooth CHEBFUN (i.e., with no breakpoints), then CHEBCOEFFS(F) is
-%   equivalent to CHEBCOEFFS(F, LENGTH(F)).
+%   If F is an array-valued chebfun, then A is a matrix with the
+%   same number of columns as F.
 %
-%   If F is array-valued with M columns, then A is an MxN matrix.
+%   If the domain of F is [a,b] rather than [-1,1], then the 
+%   coefficients are those of F transplanted to [-1,1].
 %
-%   C = CHEBCOEFFS(F, N, 'kind', 2) returns the vector of coefficients for the
-%   Chebyshev expansion of F in 2nd-kind Chebyshev polynomials F = ... + C(1)
-%   U_N(x) + ... + C(N) U_1(x) + C(N+1) U_0(x).
+%   If F is a piecewise chebfun, you can extract the Chebyshev
+%   coefficients of the pieces with GET(F, 'COEFFS').
 %
-% See also LEGCOEFFS, FOURCOEFFS.
+%   Alternatively, A = CHEBCOEFFS(F, N) returns the first N Chebyshev
+%   coefficients of a piecewise chebfun F even though F is not
+%   represented by a global Chebyshev expansion.  Chebfun does this
+%   by evaluating appropriate integrals. 
+%
+%   A = CHEBCOEFFS(F, 'kind', 2) or A = CHEBCOEFFS(F, N, 'kind', 2)
+%   return vectors or matrices corresponding to expansions 
+%   F = A(1) U_0(x) + ... + A(N) U_(N-1)(x) in Chebyshev polynomials
+%   of the second kind.
+%
+%   Examples:
+%    x = chebfun('x');
+%    chebcoeffs(exp(x))
+%    chebcoeffs(abs(x),10)
+%
+% See also LEGCOEFFS, TRIGCOEFFS.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers. 
+% Copyright 2017 by The University of Oxford and The Chebfun Developers. 
 % See http://www.chebfun.org/ for Chebfun information.
 
 % Trivial empty case:
@@ -50,15 +66,19 @@ if ( numel(argin) > 0 )
     N = argin{1};
 end
 
-%% Error checking:
-if ( isempty(N) && numFuns == 1 )
-    N = length(f);
+%% Merge:
+% Try to merge out breakpoints if possible, since integrals are expensive:
+if ( numFuns ~= 1 )
+    f = merge(f);
+    numFuns = numel(f.funs);
 end
-if ( isempty(N) )
+
+%% Error checking:
+if ( isempty(N) && numFuns > 1 )
     error('CHEBFUN:CHEBFUN:chebcoeffs:inputN', ...
         'Input N is required for piecewise CHEBFUN objects.');
 end
-if ( ~isscalar(N) || isnan(N) )
+if ( ~isempty(N) && (~isscalar(N) || isnan(N)) )
     error('CHEBFUN:CHEBFUN:chebcoeffs:inputN', 'Input N must be a scalar.');
 end
 if ( any(isinf(f.domain)) )
@@ -67,43 +87,42 @@ if ( any(isinf(f.domain)) )
         'Infinite intervals are not supported here.');
 end
 
-if ( numFuns ~= 1 )
-    f = merge(f);
-    numFuns = numel(f.funs);
-end
-
 %% Compute the coefficients:
 if ( numFuns == 1 )
-    
     % CHEBCOEFFS() of a smooth piece:
-    out = chebcoeffs(f.funs{1}, N).';    
-    
+    out = chebcoeffs(f.funs{1}, N, kind);
+
 else
     % CHEBCOEFFS() of a piecewise smooth CHEBFUN:
+    % (Compute coefficients via inner products.)
 
-    % Compute coefficients via inner products.
-    d = f.domain([1, end]);
-    x = chebfun('x', d);
-    w = 1./sqrt((x - d(1)).*(d(2) - x));
-    numCols = numColumns(f);
-    out = zeros(numCols, N);
-    f = mat2cell(f);
-    for j = 1:numCols
-        for k = 1:N
-            T = chebpoly(k-1, d);
-            I = (f{j}.*T).*w;
-            out(j, N-k+1) = 2*sum(I)/pi;
-        end
+    % Construct a Chebfun of the appropriate Chebyshev weight:
+    d = f.domain;
+    x = chebfun([d(1) ; d(end)], [d(1), d(end)]);
+    w = sqrt((x - d(1)).*(d(end) - x));
+    if ( kind == 1 )
+        w = 1./w;
     end
-    out(:,N) = out(:,N)/2;
     
-end
-
-% Return 2nd-kind coefficients:
-if ( (kind == 2) && (numel(out) > 1) )
-    out(:,end) = 2*out(:,end);
-    % Recurrence relation / conversion matrix:
-    out = .5*[out(:,1:2), out(:,3:end) - out(:,1:end-2)];
+    % Chebyshev polynomials up to degree N - 1:
+    T = chebpoly(0:(N-1), d, kind);
+    
+    % Compute the weighted inner products:
+    numCols = numColumns(f);
+    out = zeros(N, numCols);
+    for j = 1:numCols
+        fjw = extractColumns(f, j).*w;
+        out(:,j) = innerProduct(fjw, T);
+    end
+     
+    if ( kind == 1 )
+        % Scale the T_0 term:
+        out(1,:) = out(1,:)/2;
+    end
+    
+    % Scale by 2/pi:
+    out = (2/pi)*out;
+    
 end
 
 end

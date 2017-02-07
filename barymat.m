@@ -1,4 +1,4 @@
-function B = barymat(y, x, w, r, s, doFlip)
+function B = barymat(y, x, w, s, r, doFlip)
 %BARYMAT  Barycentric Interpolation Matrix.
 %   BARYMAT(Y, X, W), where Y is a column vector of length M and X and W are
 %   column and row vectors of length N, respectively, returns the M*N matrix
@@ -8,15 +8,15 @@ function B = barymat(y, x, w, r, s, doFlip)
 %   2nd-kind Chebyshev grid: W(j) = (-1)^j, W([1, N]) = 0.5*W([1, N]).
 %
 %   BARYMAT(Y, X, W, S, R) is the same, where S = acos(Y) and R = acos(X). The
-%   purpose of this is that Y(j) - X(k) can be more accurately comuted in this
+%   purpose of this is that Y(j) - X(k) can be more accurately computed in this
 %   'theta space'. This is sometimes referred to as the 'trig trick' in spectral
 %   collocation. BARYMAT(Y, X, W, S, R, 1) also performs the 'flipping trick', 
 %   which takes advantage of the fact that the smaller entries in R and S can be
 %   computed more accurately. Note that X and Y should be symmetric about zero
-%   for this work, and it is assumed that R and S are sorted in descending
+%   for this work, and it is assumed that S and R are sorted in descending
 %   order.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 if ( isempty(y) || isempty(x) )
@@ -53,8 +53,8 @@ end
 if ( nargin < 5 )
     B = bsxfun(@minus, y, x.');  
 else
-    % Use the 'trig trick' that cos(r) - cos(s) = 2*sin((r+s)/2)*sin((r-s)/2).
-    B = 2*bsxfun(@(r,s) sin((s+r)/2) .* sin((r-s)/2), r, s.');
+    % Use the 'trig trick' that y-x = cos(s)-cos(r) = 2*sin((s+r)/2)*sin((r-s)/2).
+    B = 2*bsxfun(@(r, s) sin((s+r)/2).* sin((r-s)/2), r.', s);
 end
 
 % Construct the matrix:

@@ -2,16 +2,16 @@ function values = coeffs2vals(coeffs)
 %COEFFS2VALS   Convert Chebyshev coefficients to values at Chebyshev points
 %of the 2nd kind.
 %   V = COEFFS2VALS(C) returns the values of the polynomial V(i,1) = P(x_i) =
-%   C(1,1)*T_{N-1}(x_i) + C(2,1)*T_{N-2}(x_i) + ... + C(N,1), where the x_i are
+%   C(1,1)*T_{0}(x_i) + ... + C(N,1)*T_{N-1}(x_i), where the x_i are
 %   2nd-kind Chebyshev nodes.
 %
 %   If the input C is an (N+1)xM matrix then V = COEFFS2VALS(C) returns the
-%   (N+1)xM matrix of values V such that V(i,j) = P_j(x_i) = C(1,j)*T_{N-1}(x_i)
-%   + C(2,j)*T_{N-2}(x_i) + ... + C(N,j)
+%   (N+1)xM matrix of values V such that V(i,j) = P_j(x_i) = C(1,j)*T_{0}(x_i)
+%   + C(2,j)*T_{1}(x_i) + ... + C(N,j)*T_{N-1}(x_i).
 %
 % See also VALS2COEFFS, CHEBPTS.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers. 
+% Copyright 2017 by The University of Oxford and The Chebfun Developers. 
 % See http://www.chebfun.org/ for Chebfun information.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -20,6 +20,13 @@ function values = coeffs2vals(coeffs)
 % [Mathematical reference]: Sections 4.7 and 6.3 Mason & Handscomb, "Chebyshev
 % Polynomials". Chapman & Hall/CRC (2003).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% *Note about symmetries* The code below takes steps to 
+% ensure that the following symmetries are enforced:
+% even Chebyshev COEFFS exactly zero ==> VALUES are exactly odd
+% odd Chebychev COEFFS exactly zero ==> VALUES are exactly even
+% These corrections are required because the MATLAB FFT does not
+% guarantee that these symmetries are enforced.
 
 % Get the length of the input:
 n = size(coeffs, 1);
@@ -30,11 +37,15 @@ if ( n <= 1 )
     return
 end
 
+% check for symmetry
+isEven = max(abs(coeffs(2:2:end,:)),[],1) == 0;
+isOdd = max(abs(coeffs(1:2:end,:)),[],1) == 0;
+
 % Scale them by 1/2:
 coeffs(2:n-1,:) = coeffs(2:n-1,:)/2;
 
 % Mirror the coefficients (to fake a DCT using an FFT):
-tmp = [ coeffs(n:-1:1,:) ; coeffs(2:n-1,:) ];
+tmp = [ coeffs ; coeffs(n-1:-1:2,:) ];
 
 if ( isreal(coeffs) )
     % Real-valued case:
@@ -47,7 +58,11 @@ else
     values = fft(tmp);
 end
 
-% Truncate and flip the order:
+% Flip and truncate:
 values = values(n:-1:1,:);
+
+% enforce symmetry
+values(:,isEven) = (values(:,isEven)+flipud(values(:,isEven)))/2;
+values(:,isOdd) = (values(:,isOdd)-flipud(values(:,isOdd)))/2;
 
 end

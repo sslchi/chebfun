@@ -5,7 +5,7 @@ if ( nargin == 0)
     pref = chebfunpref; 
 end
 
-tol = 1000*pref.eps; 
+tol = 1000*pref.cheb2Prefs.chebfun2eps;
 j = 1; 
 
 % Fred on [-1 1 -1 1]
@@ -44,3 +44,7 @@ g = volt(F', v);
 exact = chebfun(@(x) sin(x).*(sin(x) + sin(1)) + .25*(2*x+sin(2*x) + 2 + sin(2)))';
 pass(j) = norm( g - exact ) < tol; j = j + 1; 
 
+% Test fred construction with the deprecated style.
+K = @(s,t) exp(-abs(s-t));
+F = fred( K, domain([-1,1]) );
+pass(j) = all(F.domain == [-1, 1]); j = j + 1;

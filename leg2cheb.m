@@ -1,196 +1,177 @@
-function c_cheb = leg2cheb(c_leg, normalize, M)
-%LEG2CHEB convert Legendre coefficients to Chebyshev coefficients. 
+function c_cheb = leg2cheb(c_leg, varargin)
+%LEG2CHEB   Convert Legendre coefficients to Chebyshev coefficients.
 %   C_CHEB = LEG2CHEB(C_LEG) converts the vector C_LEG of Legendre coefficients
-%   to a vector C_CHEB of Chebyshev coefficients such that C_CHEB(N)*T0 + ... +
-%   C_CHEB(1)*T{N-1} = C_LEG(N)*P0 + ... + C_LEG(1)*P{N-1}, where P{k} is the
-%   degree k Legendre polynomial normalized so that max(|P{k}| = 1.
-% 
+%   to a vector C_CHEB of Chebyshev coefficients such that
+%       C_CHEB(1)*T0 + ... + C_CHEB(N)*T{N-1} = ...
+%           C_LEG(N)*P0 + ... + C_LEG(1)*P{N-1},
+%   where P{k} is the degree k Legendre polynomial normalized so that max(|P{k}|
+%   = 1.
+%
 %   C_CHEB = LEG2CHEB(C_LEG, 'norm') is as above, but with the Legendre
 %   polynomials normalized to be orthonormal.
 %
+%   C = LEG2CHEB(C_LEG, 'trans') returns the `transpose' of the LEG2CHEB
+%   operator applied to C_LEG. That is, if C_CHEB = B*C_LEG, then C = B'*C_LEG.
+%
 %   If C_LEG is a matrix then the LEG2CHEB operation is applied to each column.
 %
-% See also CHEB2LEG. 
+%   For N > 513 the algorithm used is the one described in [1].
+%
+%   References:
+%     [1] A. Townsend, M. Webb, and S. Olver, "Fast polynomial transforms based 
+%         on Toeplitz and Hankel matrices", submitted, 2016.
+%
+% See also CHEB2LEG, CHEB2JAC, JAC2CHEB, JAC2JAC.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers. 
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% DEVELOPER NOTE:
-%  This algorithm requires O( N(log N)^2 / log log N) operations and is based on
-%  rewritting an asymptotic formula for Legendre polynomials in a way that can
-%  be evaluated using discrete cosine transforms. For more details see:
-%   N. Hale and A. Townsend, A fast, simple, and stable Chebyshev-Legendre
-%   transform using an asymptotic formula, SISC, 36 (2014), pp. A148-A167.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[N, n] = size(c_leg); % Number of columns.
 
-[N, n] = size(c_leg);                           % Number of columns.
-c_leg = flipud(c_leg);                          % Lowest order coeffs first.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Initialise  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ( nargin < 2 ), normalize = 0; end           % Normalize so max(|P{k}|) = 1.
-if ( (nargin == 2) && strncmpi(normalize, 'norm', 4) )
-    normalize = 1;                              % Orthanormal Legendre Polys.
-end
-if ( nargin < 3 ), M = 10; end                  % No. of terms in expansion.
-if ( normalize ) 
-    c_leg = bsxfun(@times, c_leg, sqrt((0:N-1)'+1/2) ); 
-end
-N = N - 1; NN = (0:N)';                         % Degree of polynomial.
-nM0 = min(floor(.5*(.25*eps*pi^1.5*gamma(M+1)/gamma(M+.5)^2)^(-1/(M+.5))), N);
-aM = min(1/log(N/nM0), .5);                     % Block reduction factor (alpha)
-K = ceil(log(N/nM0)/log(1/aM));                 % Number of block partitionss.
-
-% Use direct approach if N is small:
-if ( M == 0 || N < 513 || K == 0 ), c_cheb = leg2cheb_direct(c_leg); return, end
-
-t = pi*(0:N)'/N;                                % Theta variable.   
-nM = ceil(aM.^(K-1:-1:0)*N);                    % n_M for each block.
-jK = zeros(K, 2);                               % Block locations in theta.
-for k = 1:K
-    tmp = find(t >= asin(nM0./nM(k)), 1) - 4;   % Where curve intersects aM^k*N.    
-    jK(k,:) = [tmp+1, N+1-tmp];                 % Collect indicies.
+normalize = false;    % Default - no normalize.
+if ( any(strncmpi(varargin, 'normalize', 4)) )
+    c_leg = bsxfun(@times, c_leg, sqrt((0:N-1)'+1/2) );
 end
 
-%%%%%%%%%%%%%%%%%%%%%% Recurrence / boundary region %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-v_rec = zeros(N+1, n);
-jK2 = [jK(1,2)+1, N+1 ; jK(1:K-1,:) ; 1, N+1];
-for k = 1:K % Loop over the partitions:
-    j_bdy = [jK2(k+1,1):jK2(k,1)-1, jK2(k,2)+1:jK2(k+1,2)];
-    x_bdy = cos(t(j_bdy));                      % Boundary indicies.
-    vec = ones(numel(j_bdy),1);
-    tmp = vec*c_leg(1,:) + x_bdy*c_leg(2,:);    % Entries of mat-vec result.       
-    Pm2 = 1; Pm1 = x_bdy;                       % Initialise recurrence.
-    for kk = 1:nM(k)-1                          % Recurrence:
-        P = (2-1/(kk+1))*Pm1.*x_bdy - (1-1/(kk+1))*Pm2;
-        Pm2 = Pm1; Pm1 = P;
-        tmp = tmp + P*c_leg(kk+2,:);            % Update local LHS.
+trans = 0; 
+if ( any(strncmpi(varargin, 'trans', 4)) )
+    trans = true;
+end
+
+if ( N < 2 ) 
+    % Trivial case:
+    c_cheb = c_leg; 
+elseif ( N <= 512 ) 
+    % Use direct approach: 
+    L = legvandermonde(N-1, cos(pi*(0:(N-1))'/(N-1)));
+    if ( ~trans )
+        c_cheb = idct1(L*c_leg);
+    else
+        c_cheb = L.'*idct1(c_leg);
     end
-    v_rec(j_bdy,:) = v_rec(j_bdy,:) + tmp;      % Global correction LHS.
+else
+    c_cheb = leg2cheb_fast(c_leg, trans);
 end
 
-%%%%%%%%%%%%%%%%%%%% Asymptotics / interior region %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-C = constantOutTheFront(N);
-c_leg = bsxfun(@times,c_leg,C);                   % Scaling factor, eqn (3.3).
-v_cheb = zeros(N+1, n);                           % Initialise output vector.
-dst1([], 1);                                      % Clear persistent storage.
-for k = 1:K-1 % Loop over the block partitions:
-    v_k = zeros(N+1, n);                          % Initialise local LHS.
-    hm = ones(N+1,n); hm([1:nM(k)+1, nM(k+1)+2:end],:) = 0; % Initialise h_m.
-    j_k = jK(k,1):jK(k,2);                        % t indicies of kth block.
-    t_k = pi/2*ones(N+1, 1); t_k(j_k) = t(j_k);   % Theta in kth block.
-    denom = 1./sqrt(2*sin(t_k));                  % initialise denomenator.
-    for m = 0:M-1 % Terms in asymptotic formula:
-        denom = (2*sin(t_k)).*denom;              % Update denominator.
-        u = sin((m+.5)*(.5*pi-t_k))./denom;       % Trig terms:
-        v = cos((m+.5)*(.5*pi-t_k))./denom;
-        hmc = bsxfun(@times, c_leg,hm);           % h_M*c_leg.
-        % Update using DCT1 and DST1:
-        v_k = v_k + bsxfun(@times,dst1(hmc),u) + bsxfun(@times,dct1(hmc),v); 
-        hm = bsxfun(@times, hm, ((m+0.5)^2./((m+1)*(NN+m+1.5)))); % Update h_m.
+end
+
+function c_cheb = leg2cheb_fast(c_leg, trans)
+% BRIEF IDEA: 
+%  Let A be the upper-triangular conversion matrix. We observe that A can be
+%  decomposed as A = D1(T.*H)D2, where D1 and D2 are diagonal, T is Toeplitz,
+%  and H is a real, symmetric, positive definite Hankel matrix. The Hankel part
+%  can be approximated, up to an error of tol, by a rank O( log N log(1/tol) )
+%  matrix. A low rank approximation is constructed via pivoted Cholesky
+%  factorization.
+%
+% For more information on the algorithm, see Section 5.3 of [1].
+
+[N, n] = size(c_leg); % Number of columns.
+
+%%%%%%%%%%%%%%%%%%%%%% Initialise  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Evaluate the symbol of the Hankel part of M:
+
+% This for-loop is a faster and more accurate way of doing:
+%   Lambda = @(z) exp(gammaln(z+1/2) - gammaln(z+1));
+%   vals = Lambda( (0:2*N-1)'/2 );)
+vals = [sqrt(pi) ; 2/sqrt(pi) ; zeros(2*N-2,1)];
+for i = 2:2:2*(N-1)
+    vals(i+1) = vals(i-1)*(1-1/i);
+    vals(i+2) = vals(i)*(1-1/(i+1));
+end
+
+%%%%%%%%%%%%%%%%%%  Pivoted Cholesky algorithm %%%%%%%%%%%%%%%%%%%%%%%%%%
+% Calculate quasi-SVD of hankel part by using Cholesky factorization.
+% Find the numerical rank and pivot locations. This is equivalent to
+% Cholesky factorization on the matrix A with diagonal pivoting, except
+% here only the diagonal of the matrix is updated.
+d = vals(1:2:2*N);    % Diagonal of Hankel matrix.
+pivotValues = [];     % Store Cholesky pivots.
+C = [];               % Store Cholesky columns.
+tol = 1e-14;          % Tolerance of low rank approx.
+k = 0;
+[mx, idx] = max( d ); % Max on diagonal, searching for first Cholesky pivot.
+while ( mx > tol )
+    
+    newCol = vals( idx:idx+N-1 );
+    if ( size(C, 2) > 0)
+        newCol = newCol - C*(C(idx,:).' .* pivotValues);
     end
-    v_cheb(j_k,:) = v_cheb(j_k,:) + v_k(j_k,:);   % Add terms to output vector.
+
+    pivotValues = [pivotValues ; 1./mx]; %#ok<AGROW> % Append pivtoValues.
+    C = [C, newCol]; %#ok<AGROW>                     % Append newCol to C.
+    d = d - newCol.^2 ./ mx;                         % Update diagonal.
+    [mx, idx] = max(d);                              % Find next pivot.
+    
 end
-dst1([], 1);                                      % Clear persistent storage.
+sz = size(C, 2);                                     % Numerical rank of H.
+C = C * spdiags(sqrt(pivotValues), 0, sz, sz);       % Share out scaling.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%% Combine for result %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-v_cheb = v_cheb + v_rec;                          % Values on Chebyshev grid.
-c_cheb = idct1(v_cheb);                           % Chebyshev coeffs.
-c_cheb = flipud(c_cheb);
+%%%%%%%%%%%%%%%%%%  Multiply  D1(T.*H)D2  %%%%%%%%%%%%%%%%%%%%%%%%%%
+% Upper-triangular Toeplitz matrix in A = D1(T.*H)D2:
+T_row1 = vals(1:N);  
+T_row1(2:2:end) = 0;
+Z = zeros(N, 1);
+
+% Fast Toeplitz matrix multiply. (This is the optimized since this is the
+% majority of the cost of the code.)
+
+% Toeplitz symbol: 
+if ( ~trans ) 
+    % Upper-triangular toeplitz: 
+    a = fft( [T_row1(1) ; Z ; T_row1(N:-1:2)] );
+else
+    % Lower-triangular toeplitz: 
+    a = fft( [T_row1(1:N) ; Z] );
+    % Diagonal-scaling is on the right if trans = 0. 
+    c_leg = 2/pi*c_leg; 
+    c_leg(1,:) = c_leg(1,:)/2; 
+end
+
+if ( n == 1 )     % Column input
+    tmp1 = bsxfun(@times, C, c_leg);
+    f1 = fft( tmp1, 2*N );
+    tmp2 = bsxfun(@times, f1, a );
+    b = ifft( tmp2 );
+    c_cheb = sum(b(1:N,:).*C, 2);
+else              % Matrix input
+    c_cheb = zeros(N, n);
+    for k = 1:n
+        tmp1 = bsxfun(@times, C, c_leg(:,k));
+        f1 = fft( tmp1, 2*N, 1 );
+        tmp2 = bsxfun(@times, f1, a);
+        b = ifft( tmp2, [], 1 );
+        c_cheb(:,k) = sum(b(1:N,:).*C, 2);
+    end
+end
+
+% Diagonal-scaling is on the left if trans = 0. 
+if ( ~trans ) 
+    c_cheb = 2/pi*c_cheb; 
+    c_cheb(1,:) = c_cheb(1,:)/2; 
+end
 
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%% DIRECT METHOD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function c_cheb = leg2cheb_direct(c_leg)
-%LEG2CHEB_DIRECT   Convert Leg to Cheb coeffs using the 3-term recurrence.
-N = size(c_leg,1) - 1;                      % Degree of polynomial.
-if ( N <= 0 ), c_cheb = c_leg; return, end  % Trivial case.
-x = cos(pi*(0:N)'/N);                       % Chebyshev grid (reversed order).
-% Make the Legendre-Chebyshev Vandemonde matrix:
+function L = legvandermonde(N, x)
+% Legendre-Chebyshev Vandemonde matrix:
 Pm2 = 1; Pm1 = x;                           % Initialise.
-L = zeros(N+1, N+1);                        % Vandermonde matrix. 
+L = zeros(length(x), N+1);                  % Vandermonde matrix. 
 L(:,1:2) = [1+0*x, x];                      % P_0 and P_1.     
 for n = 1:N-1                               % Recurrence relation:
     P = (2-1/(n+1))*Pm1.*x - (1-1/(n+1))*Pm2;  
     Pm2 = Pm1; Pm1 = P; 
     L(:,2+n) = P;
 end
-v_cheb = L*c_leg;                           % Values on Chebyshev grid.
-c_cheb = idct1(v_cheb);                     % Chebyshev coefficients.
-c_cheb = flipud(c_cheb);
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%% DCT METHODS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function v = dct1(c)
-%DCT1   Compute a (scaled) DCT of type 1 using the FFT. 
-% DCT1(C) returns T_N(X_N)*C, where X_N = cos(pi*(0:N))/N and T_N(X) = [T_0,
-% T_1, ..., T_N](X) where T_k is the kth 1st-kind Chebyshev polynomial.
-N = size(c, 1);                     % Number of terms.
-ii = N-1:-1:2;                      % Indicies of interior coefficients.
-c(ii,:) = 0.5*c(ii,:);              % Scale interior coefficients.
-v = ifft([c ; c(ii,:)]);            % Mirror coefficients and call FFT.
-v = (N-1)*[ 2*v(N,:) ; v(ii,:) + v(2*N-ii,:) ; 2*v(1,:) ]; % Re-order.
-v = flipud(v);                      % Flip the order.
-end
-
-function v = dst1(c, flag) %#ok<INUSD>
-%DST1   Discrete sine transform of type 1.
-% DST1(C) returns diag(sin(T_N))*U_N(X)*C where T_N(k,1) = pi*(k-1)/N, k =
-% 1:N+1, X_N = cos(T_N) and U_N(X) = [U_0, U_1, ..., U_N](X) where U_k is the
-% kth 2nd-kind Chebyshev polynomial.
-persistent SMat sinT                        % The same for each partition.
-if ( nargin == 2 ), SMat = []; return, end  % Clear persistent variables.    
-N = size(c,1) - 1;                          % Degree of polynomial.
-if ( isempty(SMat) )                        % Construct conversion matrix:
-    dg = .5*ones(N-2, 1);                   % Conversion matrix:
-    SMat = spdiags([1 ; .5 ; dg], 0, N, N) + spdiags([0 ; 0 ; -dg], 2, N, N);
-    sinT = sin(pi*(0:N).'/N);               % Sin(theta).
-end
-v = dct1([SMat\c(2:end,:) ; zeros(1, size(c, 2))]); % Scaled DCT.
-v = bsxfun(@times, sinT, v);
 end
 
 function c = idct1(v)
 %IDCT1   Convert values on a Cheb grid to Cheb coefficients (inverse DCT1).
-% IDCT1(V) returns T_N(X_N)\V, where X_N = cos(pi*(0:N))/N and T_N(X) = [T_0,
-% T_1, ..., T_N](X) where T_k is the kth 1st-kind Chebyshev polynomial.
-N = size(v, 1);                             % Number of terms.
-c = fft([v ; v(N-1:-1:2,:)])/(2*N-2);       % Laurent fold and call FFT.
-c = c(1:N,:);                               % Extract the first N terms.
-if (N > 2), c(2:N-1,:) = 2*c(2:N-1,:); end  % Scale interior coefficients.
-if ( isreal(v) ), c = real(c); end          % Ensure a real output.
-end
+% IDCT1(V) returns T(X)\V, where X = cos(pi*(0:N)/N), T(X) = [T_0, T_1, ...,
+% T_N](X) (where T_k is the kth 1st-kind Chebyshev polynomial), and N =
+% length(V) - 1.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MISC %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+c = chebfun.idct(v, 1);                     % IDCT-I
+c([1,end],:) = .5*c([1,end],:);             % Scale.
 
-function C = constantOutTheFront(N) % (See Hale and Townsend, 2014)
-%CONSTANTOUTTHEFRONT(N) returns sqrt(4/pi)*gamma((0:N)+1)/gamma((0:N)+3/2))
-% Initialise:
-NN = (0:N)';
-NN(1) = 1; % Set the first value different from 0 to avoid complications.
-ds = -1/8./NN; s = ds; j = 1; ds(1) = 1;
-while ( norm(ds(10:end)./s(10:end),inf) > eps/100 )
-    j = j + 1;
-    ds = -.5*(j-1)/(j+1)./NN.*ds;
-    s = s + ds;
-end
-NN(1) = 0; % Reset the first value.
-p2 = exp(s).*sqrt(4./(NN+.5)/pi);
-% Stirling's series:
-g = [1 1/12 1/288 -139/51840 -571/2488320 163879/209018880 ...
-    5246819/75246796800 -534703531/902961561600 ...
-    -4483131259/86684309913600 432261921612371/514904800886784000];
-eN = ones(N+1, 1); e9 = ones(1, 9);
-ff1 = sum(bsxfun(@times, g, [eN, cumprod(bsxfun(@rdivide, e9, NN),2)]), 2);
-ff2 = sum(bsxfun(@times, g, [eN, cumprod(bsxfun(@rdivide, e9, NN+.5),2)]), 2);
-C = p2.*ff1./ff2;
-% Use direct evaluation for the small values:
-C(1:10) = sqrt(4/pi)*gamma((0:9)+1)./gamma((0:9)+3/2);
 end

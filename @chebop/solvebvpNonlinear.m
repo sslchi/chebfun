@@ -26,7 +26,10 @@ function [u, info] = solvebvpNonlinear(N, rhs, L, u0, res, pref, displayInfo)
 
 % Store preferences used in the Newton iteration in separate variables
 maxIter  = pref.maxIter;
-errTol   = pref.errTol;
+bvpTol   = pref.bvpTol;
+
+% Loosen convergence tolerance for Newton iteration
+bvpTolNonlinear = 200*bvpTol;
 
 % Did the user request damped or undamped Newton iteration? Start in mode
 % requested (later on, the code can switch between modes).
@@ -65,7 +68,7 @@ errEst = inf;
 % Some initializations of the DAMPINGINFO struct. See 
 %   >> help dampingErrorBased 
 % for discussion of this struct. 
-dampingInfo.errTol =        errTol;
+dampingInfo.errTol =        bvpTolNonlinear;
 dampingInfo.normDeltaOld =  [];
 dampingInfo.normDeltaBar =  [];
 dampingInfo.lambda =        lambda;
@@ -76,14 +79,23 @@ dampingInfo.damping =       damping;
 dampingInfo.x =             x;
 dampingInfo.giveUp =        0;
 
-linpref = pref;
-linpref.errTol = pref.errTol/10;
+% Get the differential order of the LINOP L (needed when evaluating the residual
+% of periodic boundary conditions):
+diffOrder = L.diffOrder;
 
 % Start the Newton iteration!
 while ( ~terminate )
     
     % Compute a Newton update:
-    [delta, disc] = linsolve(L, res, linpref, vscale(u));
+    [delta, disc, converged] = linsolve(L, res, pref, vscale(u));
+    
+    % If solving for the Newton update did not converge, we have a gibberish
+    % update. This will cause the solution process to halt (we're solving
+    % something that's way too noisy), so bail out of the Newton iteration:
+    if ( ~converged )
+        giveUp = true;
+        break
+    end
 
     % We had two output arguments above, need to negate DELTA.
     delta = -delta;
@@ -97,7 +109,7 @@ while ( ~terminate )
     % At the first Newton iteration, we have to do additional checks.
     if ( newtonCounter == 0)
         % Did we actually get an initial passed that solves the BVP?
-        if ( normDelta/sum(vscale(u)) < errTol/100 )
+        if ( normDelta/sum(vscale(u)) < bvpTol )
             displayInfo('exactInitial', pref);
             info.error = NaN;
             info.normDelta = normDelta;
@@ -115,7 +127,7 @@ while ( ~terminate )
         % Find the next Newton iterate (the method finds the step-size, then
         % takes the damped Newton and returns the next iterate).
         [u, dampingInfo] = dampingErrorBased(N, u, rhs, delta, ...
-            L, disc, dampingInfo);
+            L, disc, dampingInfo, pref);
         
         % If we're in damped mode, we don't get an error estimate...
         errEst = NaN;
@@ -135,13 +147,6 @@ while ( ~terminate )
         
     else % We are in undamped phase
         
-        % Update lambda so that we will print correct information in the
-        % displayInfo() method.
-        lambda = 1;
-        
-        % Take a full Newton step:
-        u = u + delta;
-        
         % Compute a contraction factor and an error estimate. Can only do so
         % once we have taken one step.
         if ( newtonCounter == 0 )
@@ -155,13 +160,22 @@ while ( ~terminate )
                 % anymore. Have to resort back to damped iteration (but only if
                 % the user wanted damped Newton in the first place).
                 damping = prefDamping;
-                if ( damping ) 
+                if ( damping )
                     continue    % Go back to the start of loop
+                else
+                    u = u + delta;
                 end
             else
                 % Error estimate based on the norm of the update and the contraction
                 % factor.
                 errEst =  normDelta / (1 - cFactor^2);
+                
+                % Update lambda so that we will print correct information in the
+                % displayInfo() method.
+                lambda = 1;
+                
+                % Take a full Newton step
+                u = u + delta;
             end
         end
         
@@ -186,7 +200,7 @@ while ( ~terminate )
         normDelta, cFactor, length(delta{1}), lambda, len, displayFig, ...
         displayTimer, pref);
     
-    if ( errEst < errTol )  
+    if ( errEst < bvpTolNonlinear )  
         % Sweet, we have converged!      
         success = 1;
     elseif ( newtonCounter > maxIter )
@@ -201,7 +215,7 @@ while ( ~terminate )
         % Linearize around current solution:
         [L, res] = linearize(N, u, x);
         % Need to subtract the original RHS from the residual:
-        res = res - rhs;
+        res = res - rhs;    
     end
     
     % Should we stop the Newton iteration?
@@ -212,7 +226,7 @@ while ( ~terminate )
 end
 
 % Evaluate how far off we are from satisfying the boundary conditions.
-errEstBC = normBCres(N, u, x);
+errEstBC = normBCres(N, u, x, diffOrder, pref);
 
 % Print information depending on why we stopped the Newton iteration.
 if ( success )
@@ -233,17 +247,18 @@ end
 % Return useful information in the INFO structure
 info.normDelta = normDeltaVec(1:newtonCounter);
 info.error = errEst;
+info.converged = success;
 
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function bcNorm = normBCres(N, u, x)
+function bcNorm = normBCres(N, u, x, diffOrder, pref)
 %NORMBCRES   Compute residual norm of the boundary conditions.
-%   NORMBCRES(N, U, X) returns the combined Frobenius norm of N.lbc(U),
+%   NORMBCRES(N, U, X, DIFFORDER, PREF) returns the combined Frobenius norm of N.lbc(U),
 %   N.rbc(U), and N.bc(X, U).
 
-% TODO: This might be useful elsewehere (i.e. chebop/linearize), do we want to
+% [TODO]: This might be useful elsewehere (i.e. chebop/linearize), do we want to
 % move this into a separate file?
 
 % Initialize:
@@ -308,10 +323,33 @@ if ( ~isempty(N.rbc) )
 end
 
 % Evaluate and linearise the remaining constraints:
-if ( ~isempty(N.bc) )
-    % Evaluate. The output, BCU, will be a vector.
-    bcU = N.bc(x, uBlocks{:});
-    bcNorm = bcNorm + norm(bcU, 2).^2;
+disc = pref.discretization();
+tech = disc.returnTech();
+techUsed = tech();
+
+if ( ~isempty(N.bc) || isequal(pref.discretization, @trigcolloc) )
+    % Periodic case. 
+    if ( (isa(N.bc, 'char') && strcmpi(N.bc, 'periodic')) || ...
+            isPeriodicTech(techUsed) )
+        bcU = 0;
+        % Need to evaluate the residual of the boundary condition for each
+        % independent variable uBlocks{k} separately, since each variable can
+        % have a different maximum differential order associated with it in a
+        % problem.
+        for k = 1:numel(uBlocks)
+            for l = 0:max(diffOrder(:, k))
+                % Compute residual of appropriately many derivatives:
+                bcU = bcU + (feval(diff(uBlocks{k}, l), N.domain(end)) - ...
+                    feval(diff(uBlocks{k}, l), N.domain(1)))^2;
+            end
+        end
+        bcNorm = bcNorm + bcU;
+        
+    else
+        % Evaluate. The output, BCU, will be a vector.
+        bcU = N.bc(x, uBlocks{:});
+        bcNorm = bcNorm + norm(bcU, 2).^2;
+    end
 end
 
 bcNorm = sqrt(bcNorm);

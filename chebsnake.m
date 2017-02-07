@@ -1,9 +1,9 @@
 function chebsnake(nodes,alpha)
 %CHEBSNAKE   Chebfun snake game.
-%   CHEBSNAKE() plays a twist on a classic game where you must feed the snake
-%   with more and more interpolation nodes, but avoid that it hits the boundary
-%   or itself! Use the arrow keys to control the snake. Any other key will quit
-%   the game.
+%   CHEBSNAKE plays a twist on a classic game where you must feed the snake
+%   with more and more interpolation nodes, but keep it from hitting the
+%   boundary or itself. Use the arrow keys to control the snake.
+%   Any other key will quit the game.
 %
 %   CHEBSNAKE(NODES) allows one to change the interpolation type. The default
 %   type 'cheby' is polynomial interpolation in Chebyshev points. Other types
@@ -11,16 +11,16 @@ function chebsnake(nodes,alpha)
 %   Floater-Hormann rational interpolation in equispaced points ('fh'). The blue
 %   dots on the snake indicate the interpolated function values.
 %
-%   CHEBSNAKE(NODES, ALPHA) allows to change the initial game speed by a factor
-%   ALPHA > 0, ALPHA > 1 increases the game speed, ALPHA < 1 decreases it
-%   (default = 1).
+%   CHEBSNAKE(NODES, ALPHA) allows you to change the initial game speed by a
+%   factor ALPHA > 0, ALPHA > 1 increases the game speed, ALPHA < 1 decreases 
+%   it (default = 1).
 %
 %   To prevent you from neglecting your actual work, the game speed increases
-%   with the total number of achieved points...
+%   with the total number of achieved points....
 %
 % See also CHEBTUNE.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 % Get some constants right:
@@ -97,12 +97,13 @@ while ( d ~= 0 ) % until quit
     t = 1;                              % convex factor for nodes
     go = chebsnakePlotChebfun(.7*scribble('ready?'), 'r', LW, lw);
     shg; 
-    pause(0.3); 
-    delete(go(~isnan(go)));
+    pause(0.3);
+    delete(go)
+    
     go = chebsnakePlotChebfun(.4*scribble('go!'), 'r', LW, lw);
     shg; 
     pause(0.3); 
-    delete(go(~isnan(go)));
+    delete(go)
     
     tic
     while ( d ~= 0 )                    % until game over or quit
@@ -131,9 +132,7 @@ while ( d ~= 0 ) % until quit
             c = polyfit(yy, y, length(y) - 1, dom);
         end
         for k = 1:numel(hs1)
-            if ( ~isnan(hs1(k)) )
-                delete(hs1(k));
-            end
+            delete(hs1(k));
         end
 
         hs1 = chebsnakePlotChebfun(c, 'b-', LW, lw);
@@ -175,7 +174,7 @@ while ( d ~= 0 ) % until quit
                 up = chebsnakePlotChebfun(.8*scribble('1 up!'), 'r', LW, lw);
                 shg
                 pause(1)
-                delete(up(~isnan(up)));
+                delete(up)
             end
             
             title(['Points : ' num2str(pts) '       Level : ' num2str(lvl) ...
@@ -196,9 +195,7 @@ while ( d ~= 0 ) % until quit
     end
     
     for k = 1:numel(ht)
-        if ( ~isnan(ht(k)) )
-            delete(ht(k));
-        end
+        delete(ht(k));
     end
     
 end

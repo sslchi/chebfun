@@ -2,7 +2,7 @@
 
 function pass = test_clenshaw(varargin)
 
-% Set a tolerance (pref.eps doesn't matter)
+% Set a tolerance (pref.chebfuneps doesn't matter)
 tol = 10*eps;
 
 %%
@@ -25,7 +25,7 @@ pass(3) = ( all(size(v) == [2, 3]) && norm(repmat(c, 2, 1) - v) == 0);
 %%
 % Test that a vector coefficient is evaluated correctly:
 % Some simple data :
-c = (1:5).';
+c = (5:-1:1).';
 x = [-.5 ; -.1 ; 1];
 
 % Scalar coefficient

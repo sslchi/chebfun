@@ -21,9 +21,9 @@ L = addbc(L,B2,1);
 
 %%
 
-types = {@colloc2,  @ultraS};
+types = {@chebcolloc2,  @ultraS};
 prefs = cheboppref;
-prefs.errTol = 1e-13;
+prefs.bvpTol = 1e-13;
 
 for k = 1:2
     

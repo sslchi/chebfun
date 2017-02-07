@@ -1,13 +1,13 @@
-function pass = test_waveequation( prefs )
+function pass = test_waveequation( pref )
 % Testing the wave equation on a non-square domain.  This tests if the domain is
 % being treated properly and if Neumann boundary conditions are being dealt with
 % correctly. 
 % Alex Townsend, April 2013. 
 
 if ( nargin < 1 ) 
-    prefs = chebfunpref(); 
+    pref = chebfunpref(); 
 end 
-tol = 100*prefs.techPrefs.eps; 
+tol = 100*pref.cheb2Prefs.chebfun2eps;
 
 %%  Standard wave equation on a non-square domain. 
 
@@ -29,7 +29,7 @@ N.lbc = 0;
 N.rbc = 0;
 N.dbc = @(x,u) [u - 2*sin(x) ; diff(u)];
 u = N \ 0;
-pass(2) = ( norm(u - exact) < tol); 
+pass(2) = ( norm(u - exact) < 2*tol); 
 
 %% An example with a different wave speed. 
 
@@ -40,7 +40,7 @@ N.lbc = 0;
 N.rbc = 0;
 N.dbc = @(x,u) [u - 2*sin(x) ; diff(u)];
 u = N \ 0;
-pass(3) = ( norm(u - exact) < 4*tol); 
+pass(3) = ( norm(u - exact) < 5*tol); 
 
 %% Higher wave speed. 
 
@@ -51,7 +51,7 @@ N.lbc = @(t) sin(-2*pi+c*t);
 N.rbc = @(t) sin(2*pi+c*t);
 N.dbc = @(x,u) [u - sin(x) ; diff(u) - c*cos(x)];
 u = N \ 0;
-pass(4) = ( norm(u - exact) < 5e3*tol);
+pass(4) = ( norm(u - exact) < 7e3*tol);
 
 %% Working for non-zero starting time. 
 d = [-2*pi 2*pi 1 2]; c = 3; 

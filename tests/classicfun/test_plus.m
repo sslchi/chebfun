@@ -73,11 +73,18 @@ g_op = @(x) sin(x);
 g = bndfun(g_op, data, pref);
 try
     h = f + g; %#ok<NASGU>
-    pass(18) = false;
+    if ( verLessThan('matlab', '9.1') )
+        pass(18) = false;
+    else
+        pass(18) = true;
+    end
 catch ME
-    pass(18) = strcmp(ME.message, 'Matrix dimensions must agree.');
+    if ( verLessThan('matlab', '9.1') )
+        pass(18) = strcmp(ME.message, 'Matrix dimensions must agree.');
+    else
+        pass(18) = false;
+    end
 end
-
 
 %% 
 % Check that direct construction and PLUS give comparable results.
@@ -111,9 +118,10 @@ h = f + g;
 vals_h = feval(h, x);
 op = @(x)  (x - data.domain(2)).^pow.*(sin(x)+cos(3*x));
 h_exact = op(x);
-pass(22) = ( norm(vals_h-h_exact, inf) < 1e1*max(get(f, 'epslevel'), ...
-    get(g, 'epslevel'))*norm(h_exact, inf) );
-
+pass(22) = ( norm(vals_h-h_exact, inf) < 1e3*max(eps, ...
+    eps)*norm(h_exact, inf) );
+    
+    
 %% Test for UNBNDFUN:
 
 % Functions on [-inf inf]:
@@ -134,7 +142,7 @@ h = f + g;
 hVals = feval(h, x);
 hExact = oph(x);
 err = hVals - hExact;
-pass(23) = norm(err, inf) < get(h,'epslevel').*get(h,'vscale');
+pass(23) = norm(err, inf) < 1e1*eps*get(h,'vscale');
 
 end
 
@@ -147,7 +155,7 @@ function result = test_add_function_to_scalar(f, f_op, alpha, x)
     result(1) = isequal(g1, g2);
     g_exact = @(x) f_op(x) + alpha;
     result(2) = norm(feval(g1, x) - g_exact(x), inf) < ...
-        10*max(get(g1, 'vscale').*get(g1, 'epslevel'));
+        10*max(get(g1, 'vscale')*eps);
 end
 
 %% 
@@ -159,5 +167,6 @@ function result = test_add_function_to_function(f, f_op, g, g_op, x)
     result(1) = isequal(h1, h2);
     h_exact = @(x) f_op(x) + g_op(x);
     result(2) = norm(feval(h1, x) - h_exact(x), inf) <= ...
-        10*max(get(h1, 'vscale').*get(h1, 'epslevel'));
+        100*max(get(h1, 'vscale')*eps);
+        
 end

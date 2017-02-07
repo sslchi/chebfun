@@ -16,7 +16,7 @@ function [f, rootsLeft, rootsRight] = extractBoundaryRoots(f, numRoots)
 %
 % See also ROOTS.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 if ( nargin == 1 )
@@ -32,10 +32,10 @@ rootsRight = zeros(1, m);
 
 % Tolerance for a root (we will loosen this with each run of the loop below if
 % there are multiple roots):
-tol = 1e2*f.vscale.*f.epslevel;
+tol = 1e3*vscale(f)*eps;
 
 % Values at ends:
-endValues = abs([feval(f, -1); feval(f, 1)]);
+endValues = abs(feval(f, [-1;1]));
 
 % If there are no roots, there is nothing to do!
 if ( all(min(endValues, [], 1) > tol) )
@@ -96,10 +96,10 @@ while ( ( ( nargin == 1 ) && any( min(endValues, [], 1) <= tol ) ) ...
     D(1) = 1; %#ok<SPRIX>
     
     % Compute the new coefficients:
-    c(2:end,ind) = sgn*flipud(D\c(end-1:-1:1,ind));
+    c(1:end-1,ind) = sgn*(D\c(2:end,ind));
     
     % Pad zero at the highest coefficients:
-    c(1,ind) = 0; 
+    c(end,ind) = 0; 
     
     % Update the coefficients.  Note that we don't need to update the values 
     % here, since only coefficients are used in this while loop.  (feval(), 
@@ -107,10 +107,10 @@ while ( ( ( nargin == 1 ) && any( min(endValues, [], 1) <= tol ) ) ...
     f.coeffs = c;
     
     % Update endValues:
-    endValues = abs([feval(f, -1); feval(f, 1)]);
+    endValues = abs(feval(f, [-1;1]));
     
     % Loosen the tolerance for checking multiple roots:
-    tol = 1e3*tol;
+    tol = 1e2*tol;
     
 end
 

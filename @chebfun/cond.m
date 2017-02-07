@@ -4,7 +4,7 @@ function out = cond(f)
 %
 % See also SVD, RANK.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers. 
+% Copyright 2017 by The University of Oxford and The Chebfun Developers. 
 % See http://www.chebfun.org/ for Chebfun information.
 
 % Compute the singular values:

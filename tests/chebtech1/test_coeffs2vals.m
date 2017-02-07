@@ -2,7 +2,7 @@
 
 function pass = test_coeffs2vals(varargin)
 
-% Set a tolerance (pref.eps doesn't matter)
+% Set a tolerance (pref.chebfuneps doesn't matter)
 tol = 100*eps;
 
 %%
@@ -13,7 +13,7 @@ pass(1) = (c == v);
 
 %%
 % Simple data (even case)
-c = (1:6).';
+c = (6:-1:1).';
 % Exact values
 vTrue = [ -3*sqrt(6)/2-5/sqrt(2)+2*sqrt(3)+7 ; 4 - sqrt(2)/2 ; -3*sqrt(6)/2+5/sqrt(2)-2*sqrt(3)+7 ; 3*sqrt(6)/2-5/sqrt(2)-2*sqrt(3)+7 ; 4 + sqrt(2)/2 ; 3*sqrt(6)/2+5/sqrt(2)+2*sqrt(3)+7];
 
@@ -42,7 +42,7 @@ pass(7) = norm(v(:,1) - vTrue, inf) < tol && ...
       
 %%
 % Simple data (odd case)
-c = (1:5).';
+c = (5:-1:1).';
 % Exact values
 vTrue = [ 11/2+sqrt(5)-2*sqrt((5+sqrt(5))/2)-sqrt((5-sqrt(5))/2) ; 11/2-sqrt(5)-2*sqrt((5-sqrt(5))/2)+sqrt((5+sqrt(5))/2) ; 3 ; 11/2-sqrt(5)+2*sqrt((5-sqrt(5))/2)-sqrt((5+sqrt(5))/2) ; 11/2+sqrt(5)+2*sqrt((5+sqrt(5))/2)+sqrt((5-sqrt(5))/2) ];
 
@@ -68,5 +68,12 @@ pass(12) = norm(v - (1+1i)*vTrue, inf) < tol;
 v = chebtech1.coeffs2vals([c, -c]);
 pass(13) = norm(v(:,1) - vTrue, inf) < tol && ...
           norm(v(:,2) + vTrue, inf) < tol;
+      
+%%
+% Test for symmetry preservation
+c = kron(ones(10,1),eye(2));
+v = chebtech1.coeffs2vals(c);
+pass(14) = norm(v(:,1) - flipud(v(:,1)), inf) == 0 && ...
+          norm(v(:,2) + flipud(v(:,2)), inf) == 0;
       
 end

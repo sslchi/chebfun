@@ -10,12 +10,12 @@ A = rand(3) + rand(3)*1i;
 f = chebtech2({[], p_cheb});
 p_poly = poly(f);
 
-err = norm(polyvalm(p_poly, A) - chebpolyvalm(p_cheb, A));
-tol = 100*pref.eps;
+err = norm(polyvalm(p_poly, A) - chebpolyvalm(flipud(p_cheb), A));
+tol = 100*pref.chebfuneps;
 pass(1) = err < tol;
 
-err = norm(polyvalm(p_poly.', A) - chebpolyvalm(p_cheb.', A));
-tol = 100*pref.eps;
+err = norm(polyvalm(p_poly.', A) - chebpolyvalm((flipud(p_cheb)).', A));
+tol = 100*pref.chebfuneps;
 pass(2) = err < tol;
 
 try

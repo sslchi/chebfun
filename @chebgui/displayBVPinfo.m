@@ -14,11 +14,11 @@ function varargout = displayBVPinfo(handles, mode, varargin)
 %                       'Stop' button on the GUI. 
 %   HANDLES:            The MATLAB handle to the CHEBGUI figure.
 %   VARARGIN:           Useful input arguments for showing information, further
-%                       described in 'help chebop/displayInfo)
+%                       described in 'help chebop/displayInfo'.
 %
 % See also: chebop/displayInfo
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers. 
+% Copyright 2017 by The University of Oxford and The Chebfun Developers. 
 % See http://www.chebfun.org/ for Chebfun information.
 
 % Go into different modes, depending on where in the Newton iteration we are.
@@ -47,7 +47,7 @@ function displayBVPinfoExactInitial(handles, pref)
 str = {'Initial guess appears to be a solution of the BVP.';
     'Returning initial guess as the solution.'};
 
-% Update the informtion on the GUI:
+% Update the information on the GUI:
 set(handles.iter_list, 'String',  str);
 set(handles.iter_list, 'Value', 1);
 
@@ -62,7 +62,7 @@ function [displayFig, displayTimer] = displayBVPinfoInit(handles, u, pref)
 % Update the iteration information header on the GUI
 initString = [' Iter.       || du ||        Contraction      stepsize     ',...
     '   len(du)          len(u)'];
-set(handles.iter_text,'String', initString);
+set(handles.iter_text, 'String', initString);
 
 % Clear the update plot
 axes(handles.fig_norm)
@@ -74,8 +74,15 @@ cla
 axes(handles.fig_sol)
 
 % Plot initial guess
-plot(chebfun(u), '.-')
-title('Initial guess of solution')
+plot(chebfun(u), '.-', 'linewidth', 2)
+set(handles.panel_figSol, 'title', 'Initial guess of solution')
+
+% Remove title from bottom plot panel
+set(handles.panel_figNorm, 'title', 'Current correction step')
+
+% Update the fontsize of plots
+set(handles.fig_sol, 'fontsize', handles.fontsizePanels);
+set(handles.fig_norm, 'fontsize', handles.fontsizePanels);
 
 % Do different things for the axes depending on if the solution is real.
 if ( isreal(chebfun(u)) )
@@ -119,9 +126,9 @@ set(handles.iter_list, 'Value', iterNo);
 % Switch focus to the fig_sol plot on the GUI.
 axes(handles.fig_sol)
 
-% Plot initial guess
-plot(chebfun(u), '.-')
-title('Current solution')
+% Plot current iterate
+plot(chebfun(u), '.-', 'linewidth', 2)
+set(handles.panel_figSol, 'title', 'Current solution')
 
 % Do different things for the axes depending on if the solution is real.
 if ( isreal(chebfun(u)) )
@@ -135,9 +142,13 @@ end
 % Switch focus to the fig_norm plot on the GUI.
 axes(handles.fig_norm)
 
-% Plot initial guess.
-plot(chebfun(delta), '.-')
-title('Current correction step')
+% Plot Newton update
+plot(chebfun(delta), '.-',  'linewidth', 2)
+set(handles.panel_figNorm, 'title', 'Current correction step')
+
+% Update the fontsize of plots
+set(handles.fig_sol, 'fontsize', handles.fontsizePanels);
+set(handles.fig_norm, 'fontsize', handles.fontsizePanels);
 
 % Do different things for the axes depending on if the solution is real.
 if ( isreal(chebfun(u)) )
@@ -181,22 +192,24 @@ function displayBVPInfoFinal(handles, u, delta, iterNo, errEstDE, errEstBC, ...
 if ( iterNo == 1 )
     finalStr = {'Newton''s method converged in 1 iteration\n'};
 else
-    finalStr = {sprintf('Newton''s method converged in %i iterations.\n',....
+    finalStr = {sprintf('Newton''s method converged in %i iterations.',....
         iterNo)};
 end
 
 % Show what discretization was used
-if ( strcmpi(func2str(pref.discretization), 'ultraS') )
-    discString = 'Ultraspherical';
+if ( strcmpi(func2str(pref.discretization), 'coeffs') || ...
+        isequal(pref.discretization, @ultraS) || ...
+        isequal(pref.discretization, @trigspec))
+    discString = 'Coefficients';
 else
-    discString = 'Collocation';
+    discString = 'Values';
 end
-finalStr = [finalStr; sprintf('Discretization method used: %s. \n', ...
+finalStr = [finalStr; sprintf('Discretization basis used: %s.', ...
     discString)];
     
 % Print info about the final error estimates...
 finalStr = [finalStr; ...
-    sprintf('Final error estimate: %.2e (differential equation) \n', errEstDE)];
+    sprintf('Final error estimate: %.2e (differential equation) ', errEstDE)];
 % ...and the error in the boundary conditions.
 finalStr = [finalStr; ...
     sprintf('%30.2e (boundary conditions).', errEstBC)];
@@ -217,19 +230,33 @@ function displayBVPinfoLinear(handles, u, nrmRes, pref)
 str = {'Linear equation detected. Converged in one step.'};
 
 % Show what discretization was used:
-if ( strcmpi(func2str(pref.discretization), 'ultraS') )
-    discString = 'Ultraspherical';
+if ( strcmpi(func2str(pref.discretization), 'coeffs') || ...
+        isequal(pref.discretization, @ultraS) || ...
+        isequal(pref.discretization, @trigspec))
+    discString = 'Coefficients';
 else
-    discString = 'Collocation';
+    discString = 'Values';
 end
 
 % Concatenate strings:
-str = [str ; sprintf('Discretization method used: %s. \n',  discString)];
-str = [str ; sprintf('Length of solution: %i.\n', length(chebfun(u)))];
-str = [str ; sprintf('Norm of residual: %.2e.\n', nrmRes)];
+str = [str ; sprintf('Discretization basis used: %s.',  discString)];
+str = [str ; sprintf('Length of solution: %i.', length(chebfun(u)))];
+str = [str ; sprintf('Norm of residual: %.2e.', nrmRes)];
 
-% Update the informtion on the GUI:
+% Update the information on the GUI:
 set(handles.iter_list, 'String',  str);
 set(handles.iter_list, 'Value', 1);
+
+% Plot
+axes(handles.fig_sol)
+plot(u, 'linewidth', 2)
+% Do different things depending on whether the solution is real or not
+if ( isreal(u{1}) )
+    axis tight
+else
+    axis equal
+end
+
+set(handles.panel_figSol, 'title', 'Solution')
 
 end

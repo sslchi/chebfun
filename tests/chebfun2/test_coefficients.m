@@ -5,7 +5,7 @@ function pass = test_coefficients( pref )
 if ( nargin < 1 ) 
     pref = chebfunpref; 
 end 
-tol = 100 * pref.eps; 
+tol = 100 * pref.cheb2Prefs.chebfun2eps;
 
 kind = 2;
 if ( isa( pref.tech(), 'chebtech2' ) )
@@ -20,8 +20,8 @@ g = chebpoly(n);
 h = chebfun2(@(x,y) f(x).*g(y)); 
 X = chebcoeffs2(h); 
 
-pass(1)  = (abs( X(end-n,end-n) -1) < tol );  
-X(end-n,end-n) = X(end-n,end-n)-1;
+pass(1)  = (abs( X(n+1,n+1) - 1) < tol );  
+X(n+1,n+1) = X(n+1,n+1)-1;
 pass(2) =  (norm(X) < tol ); 
 
 % Are cheb2poly and cheb2polyval inverses?  

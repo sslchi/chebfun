@@ -11,7 +11,7 @@ pass = true;
 if ( nargin == 0 )
     pref = cheboppref();
 end
-pref.errTol = 1e-9;
+pref.bvpTol = 1e-9;
 
 Re = 5772.22;               % Reynolds number
 alph = 1;                   % longitudinal Fourier parameter
@@ -22,7 +22,7 @@ B = chebop(@(x,u) diff(u, 2) - u, [-1 1]);
 A.lbc = @(u) [u ; diff(u)];
 A.rbc = @(u) [u ; diff(u)];
 
-discType = {@colloc2, @ultraS, @colloc1};
+discType = {@chebcolloc2, @ultraS, @chebcolloc1};
 
 tol = 5e-6;
 

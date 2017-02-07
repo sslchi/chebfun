@@ -7,8 +7,7 @@ dom = [0 pi];
 if ( nargin == 0 )
     pref = cheboppref;
 end
-pref.errTol = 1e-11;
-
+ 
 %% Simple scalar problem
 N = chebop(@(x,u) diff(u,2) + x.*u, dom);
 N.lbc = 2; 
@@ -18,8 +17,8 @@ x = chebfun(@(x) x, dom);
 rhs = sin(x);
 
 %% Simple
-% Start with colloc2
-pref.discretization = @colloc2;
+% Start with chebcolloc2
+pref.discretization = @chebcolloc2;
 N.init = sin(20*x);
 u1 = solvebvp(N, rhs, pref);
 err(1) = norm(N(u1) - rhs);
@@ -43,5 +42,5 @@ err(5) = norm(A(uv)-rhs);
 err(6) = abs(feval(A.lbc(uv{1}, uv{2}), d(1))) + ...
     abs(feval(A.rbc(uv{1}, uv{2}), d(end)));
 %% Happy?
-tol = 100*pref.errTol;
+tol = 1e3*pref.bvpTol;
 pass = err < tol;

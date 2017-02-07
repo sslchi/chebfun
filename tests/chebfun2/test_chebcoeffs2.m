@@ -1,23 +1,29 @@
-function pass = test_chebpoly2( pref ) 
+function pass = test_chebcoeffs2( pref ) 
 % Test chebpoly2 
 
 if ( nargin == 0) 
     pref = chebfunpref; 
 end
 
-tol = 1000*pref.eps; 
+tol = 1000*pref.cheb2Prefs.chebfun2eps;
 j = 1; 
 
 % Rank-2 function
-T10 = chebpoly(10);
-T8 = chebpoly(8);
-f = T10 * T10' + T8 * T10'; 
+n = 10;
+m = 8;
+Tn = chebpoly(n);
+Tm = chebpoly(m);
+f = Tn * Tn' + Tm * Tn'; 
 X = chebcoeffs2( f );
-Exact = zeros(11); Exact(1,1) = 1; Exact(3,1) = 1; 
+Exact = zeros(n+1); Exact(n+1,n+1) = 1; Exact(m+1,n+1) = 1; 
 pass(j) = norm( X - Exact ) < tol; j = j + 1; 
 
+%f = Tm * Tn';
 % check inverses
 Z = chebfun2.vals2coeffs( chebpolyval2( f ) );
 pass(j) = norm( Z - Exact ) < tol; j = j + 1; 
+
+f = chebfun2( @(x,y) x + y );
+pass(j) = isequal( size(coeffs2(f,2,1)), [2 1] ); j = j + 1;
 
 end

@@ -5,7 +5,7 @@ function f = times(f, g)
 %
 % See also MTIMES.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 % Deal with the special cases:
@@ -75,13 +75,19 @@ else                           % CHEBFUN .* CHEBFUN
             'Matrix dimensions must agree. (One input is transposed).');
     end
     
-    if ( numColumns(f) ~= numColumns(g) )
-        error('CHEBFUN:CHEBFUN:times:matdim', 'Matrix dimensions must agree.');
-    end
-
+    dimCheck(f, g);
+        
     if ( numel(f) == 1 && numel(g) == 1 )
-        % Array-valued CHEBFUN case:
+        % CHEBFUN case:
 
+        % If one of the two CHEBFUNs uses a PERIODICTECH reprensetation, 
+        % cast it to a NONPERIODICTECH.
+        if ( ~isPeriodicTech(f.funs{1}) && isPeriodicTech(g.funs{1}) )
+            g = chebfun(g, g.domain, 'tech', get(f.funs{1}, 'tech'));
+        elseif ( isPeriodicTech(f.funs{1}) && ~isPeriodicTech(g.funs{1}) )
+            f = chebfun(f, f.domain, 'tech', get(g.funs{1}, 'tech'));
+        end
+        
         % Overlap:
         [f, g] = overlap(f, g);
 
@@ -94,13 +100,25 @@ else                           % CHEBFUN .* CHEBFUN
     else
         % QUASIMATRIX case:
 
+        % Convert to cell for simplicity
+        f = cheb2cell(f);
+        g = cheb2cell(g);
+        
         % Loop over the columns:
-        f = cheb2quasi(f);
-        g = cheb2quasi(g);
-        for k = 1:numel(f)
-            f(k) = f(k).*g(k);
+        if ( numel(f) == 1 )
+            for k = numel(g):-1:1
+                h(k) = f{1} .* g{k};
+            end
+        elseif ( numel(g) == 1 )
+            for k = numel(f):-1:1
+                h(k) = f{k} .* g{1};
+            end
+        else % numel(f) = numel(g)
+            for k = numel(f):-1:1
+                h(k) = f{k} .* g{k};
+            end
         end
-
+        f = h;
     end
 end
 

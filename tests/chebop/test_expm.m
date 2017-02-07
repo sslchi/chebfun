@@ -4,7 +4,7 @@ if ( nargin == 0 )
     pref = cheboppref();
 end
 
-tol = pref.errTol;
+tol = 1e2*pref.bvpTol;
 
 %%
 % Test against a V4 computation:
@@ -32,7 +32,7 @@ V4 = [   ...
     0.001142160800217
     0.000000000000000];
 
-err(1) = norm(V4 - feval(u{6}, chebpts(15)));
+pass(1) = norm(V4 - feval(u{6}, chebpts(15))) < tol;
 
 %%
 % Test backward compatibility:
@@ -42,10 +42,34 @@ E = expm(A, t);
 warning(warnState);
 u6 = E*u0;
 
-err(2) = norm(V4 - feval(u6, chebpts(15)));
+pass(2) = norm(V4 - feval(u6, chebpts(15))) < tol;
 
 %%
+% Test periodic boundary conditions with TRIGCOLLOC.
+dom = [0 2*pi];
+A = chebop(@(u) diff(u, 2), dom);
+A.bc = 'periodic';
+u0 = chebfun(@(x) sin(x), dom); 
+t = [0 0.001 0.01 0.1 0.5 1];
 
-pass = err < tol;
+% Solve with FOURIER technology in value space.
+u = expm(A, t, u0);
+pass(3) = isequal(get(u{1}.funs{1}, 'tech'), @trigtech);
+
+% Solve with CHEBYSHEV technology in value space.
+pref.discretization = @chebcolloc2;
+v = expm(A, t, u0, pref);
+pass(4) = isequal(get(v{1}.funs{1}, 'tech'), @chebtech2);
+
+% Solve with CHEBYSHEV technology in coefficient space.
+pref.discretization = @ultraS;
+w = expm(A, t, u0, pref);
+pass(5) = isequal(get(w{1}.funs{1}, 'tech'), @chebtech2);
+
+% Compare solutions at final time.
+pass(6) = norm(u{6} - v{6}, inf) < tol;
+pass(7) = norm(w{6} - v{6}, inf) < tol;
+
+
 
 end

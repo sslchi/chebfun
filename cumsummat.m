@@ -3,17 +3,17 @@ function C = cumsummat(N, dom, disc)
 %   C = CUMSUMMAT(N) returns the NxN indefinite integration matrix associated
 %   with the Chebyshev spectral collocation method at second-kind Chebyshev
 %   points. By convection, the arbitrary constant is chosen so that the result
-%   is zero at -1. See COLLOC2.CUMSUMMAT for further details.
+%   is zero at -1. See CHEBCOLLOC2.CUMSUMMAT for further details.
 %
 %   D = CUMSUMMAT(N, DOM) scales the indefinite integration matrix D to the
 %   domain DOM. DOM should be a 1x2 vector.
 %
 %   D = CUMSUMMAT(N, DOM, DISC) or CUMSUMMAT(N, DISC) returns the indefinite
-%   integration matrix associated with the CHEBDISCRETIZATION DISC.
+%   integration matrix associated with the OPDISCRETIZATION DISC.
 %
-% See also CUMSUM, COLLOC2.DIFFMAT, DIFFMAT.
+% See also CUMSUM, CHEBCOLLOC2.DIFFMAT, DIFFMAT.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 %% Parse the inputs:
@@ -22,10 +22,10 @@ if ( (nargin == 2) )
         disc = dom;
         dom = cheboppref().domain;
     else
-        disc = colloc2();
+        disc = chebcolloc2();
     end
 elseif ( nargin == 1 )
-    disc = colloc2();
+    disc = chebcolloc2();
     dom = cheboppref().domain;
 end
 % Ensure DISC is a discretization:

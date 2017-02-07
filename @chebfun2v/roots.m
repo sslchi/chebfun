@@ -23,7 +23,7 @@ function varargout = roots( F, varargin )
 %
 % See also CHEBFUN2/ROOTS, CHEBFUN/ROOTS.
 
-% Copyright 2014 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 % Maximum degree for resultant method:
@@ -128,6 +128,8 @@ g = g/abs(g.pivotValues(1));
 % find region in which roots might have been missed
 F = chebcoeffs2(f); 
 G = chebcoeffs2(g);
+F = rot90(F, -2);
+G = rot90(G, -2);
 
 xpts = linspace(xmin,xmax,2*max(size(F,2),size(G,2)));
 ypts = linspace(ymin,ymax,2*max(size(F,1),size(G,1)));
@@ -634,7 +636,7 @@ function [r,A,B] = chebT1rtsmatgep(c)
 k=length(c(1,1,:)); n=length(c(:,:,1));
 
 if size(c,3) ==2,  % linear case
-    r = eig(c(:,:,1),-c(:,:,2));
+    r = eig(c(:,:,2),-c(:,:,1));
     return
 end
 
@@ -739,8 +741,8 @@ end
 D = A;
 for jj = 1:n  % for each column of A
     B = A(:,jj:n:n*k);
-    C = chebtech2.vals2coeffs(B.').';   % convert first column of each coefficient to values.
-    D(:,jj:n:n*k) = C;    % assign to output.
+    C = chebtech2.vals2coeffs(B.');   % convert first column of each coefficient to values.
+    D(:,jj:n:n*k) = rot90(C, -1);     % assign to output.
 end
 
 end
@@ -873,6 +875,7 @@ vscl = max(1,max(abs(F(:))));  % don't go for more than absolute accuracy.
 
 % Compute bivariate Chebyshev T coefficients.
 C = chebfun2.vals2coeffs(F);
+C = rot90(C, -2);
 
 % Very simple truncation of the coefficients.
 %m = find(max(abs(C))>100*eps*vscl,1,'first'); n = find(max(abs(C.'))>100*eps*vscl,1,'first');
@@ -893,8 +896,8 @@ function [xroots, yroots] = roots_marchingSquares( f )
 
 fx = f.components{1}; 
 fy = f.components{2};
-prefs = chebfunpref; 
-tol = prefs.eps;
+pref = chebfunpref;
+tol = pref.cheb2Prefs.chebfun2eps;
 num = 0; 
 r = zeros(1,2); 
 dom = fy.domain;
@@ -1147,7 +1150,7 @@ function [x0,y0,iout,jout] = intersections(x1,y1,x2,y2,robust)
 
 
 % Input checks.
-error(nargchk(2,5,nargin))
+narginchk(2,5)
 
 % Adjustments when fewer than five arguments are supplied.
 switch nargin
@@ -1349,8 +1352,8 @@ if ( isa(tech, 'chebtech2') )
     x = chebpts( n, dom, 2 );   % x grid.
 elseif ( isa(tech, 'chebtech1') )
     x = chebpts( n, dom, 1 );   % x grid.
-elseif ( isa(tech, 'fourtech') )
-    x = fourpts( n, dom );   % x grid.
+elseif ( isa(tech, 'trigtech') )
+    x = trigpts( n, dom );   % x grid.
 else
     error('CHEBFUN:CHEBFUN2V:roots:techType', 'Unrecognized technology');
 end

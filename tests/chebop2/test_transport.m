@@ -1,11 +1,11 @@
-function pass = test_transport( prefs )
+function pass = test_transport( pref )
 % Testing the transport equation on rectangular domains.
 % Alex Townsend, April 2013. 
 
 if ( nargin < 1 ) 
-    prefs = chebfunpref(); 
+    pref = chebfunpref(); 
 end 
-tol = 100*prefs.techPrefs.eps; 
+tol = 100*pref.cheb2Prefs.chebfun2eps;
 
 %% Simple example of a transport equation. 
 
@@ -53,7 +53,7 @@ N = chebop2(@(u) diffy(u,1) + .1*diffx(u,1), d);
 N.dbc = @(x) exp(x);
 N.lbc = @(t) exp(-pi).*exp(-t/10);
 u = N \ 0;
-pass(5) = ( norm(u - exact) < 50*tol);
+pass(5) = ( norm(u - exact) < 1e3*tol);
 
 
 % %% Here's another one. 

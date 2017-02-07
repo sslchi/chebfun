@@ -57,6 +57,14 @@ chebfunpref.setDefaults(savedPrefs);
 
 % A test involving innerProduct:
 x = chebfun('x');
-pass(5) = innerProduct(dirac(x), x) < epslevel(f);
+pass(5) = innerProduct(dirac(x), x) < eps;
+
+% Test quasi matrix construction
+x = chebfun('x');
+A = [];
+A = [ A, dirac(x-1) ];
+A = [ A, dirac(x-0.5) ];
+A = [ A, dirac(x-0.0) ];
+pass(6) = (norm(A(:, 2) - dirac(x-.5)) < eps) && (size(A,2) == 3);
 
 end

@@ -25,14 +25,14 @@ for n = 1:4
     f = testclass.make(@(x) x);
     g = compose(f, @sin, [], [], pref);
     h = testclass.make(@sin);
-    pass(n, 1) = norm(h.coeffs - g.coeffs, inf) < 10*h.vscale.*h.epslevel;
+    pass(n, 1) = norm(h.coeffs - g.coeffs, inf) < 10*vscale(h)*eps;
 
     % Compose an array-valued CHEBTECH object with sin(x):
     f = testclass.make(@(x) [x x]);
     g = compose(f, @sin, [], [], pref);
     h = testclass.make(@(x) [sin(x) sin(x)]);
     pass(n, 2) = norm(h.coeffs - g.coeffs, inf) < ...
-        10*max(h.vscale.*h.epslevel);
+        10*max(vscale(h)*eps);
 
     % Compose an array-valued CHEBTECH object with sin(x):
     f = testclass.make(@(x) [x x.^2]);
@@ -40,7 +40,7 @@ for n = 1:4
     x = g.points();
     values = g.coeffs2vals(g.coeffs);
     pass(n, 3) = norm(sin([x, x.^2])- values, inf) < ...
-        10*max(h.vscale.*h.epslevel);
+        1e2*max(vscale(h)*eps);
     
     % Compose an array-valued CHEBTECH object with sin(x):
     f = testclass.make(@(x) [x x x.^2]);
@@ -48,7 +48,8 @@ for n = 1:4
     x = g.points();
     values = g.coeffs2vals(g.coeffs);
     pass(n, 4) = norm(sin([x x x.^2]) - values, inf) < ...
-        10*max(h.vscale.*h.epslevel);
+        1e2*max(vscale(h)*eps);
+    
     
     % Compose 2 CHEBTECH objects with a binary function:
     f1 = testclass.make(@(x) sin(x));
@@ -58,7 +59,7 @@ for n = 1:4
     h = testclass.make(sin(x) + cos(x));
     hvalues = h.coeffs2vals(h.coeffs);
     gvalues = g.coeffs2vals(g.coeffs);
-    pass(n, 5) = norm(hvalues - gvalues, inf) < 10*h.vscale.*h.epslevel;
+    pass(n, 5) = norm(hvalues - gvalues, inf) < 10*vscale(h)*eps;
     
     % Compose 2 array-valued CHEBTECH objects with a binary function:
     f1 = testclass.make(@(x) [sin(x) cos(x)]);
@@ -68,15 +69,15 @@ for n = 1:4
     hvalues = h.coeffs2vals(h.coeffs);
     gvalues = g.coeffs2vals(g.coeffs);
     pass(n, 6) = norm(hvalues - gvalues, inf) < ...
-        max(10*h.vscale.*h.epslevel);
-    
+        10*max(10*vscale(h)*eps); 
+        
     % Compose g(f), when f and g are CHEBTECH objects:
     f = testclass.make(@(x) x.^2);
     g = testclass.make(@(x) sin(x));
     h = compose(f, g); 
     hvalues = h.coeffs2vals(h.coeffs);
     x = testclass.chebpts(length(h));
-    pass(n, 7) = norm(hvalues - sin(x.^2), inf) < 10*h.vscale.*h.epslevel;
+    pass(n, 7) = norm(hvalues - sin(x.^2), inf) < 10*vscale(h)*eps;
     
     % Compose g(f), when f and g are CHEBTECH objects and g is array-valued:
     f = testclass.make(@(x) x.^2);
@@ -85,7 +86,7 @@ for n = 1:4
     x = testclass.chebpts(length(h));
     hvalues = h.coeffs2vals(h.coeffs);
     pass(n, 8) = norm(hvalues - [sin(x.^2) cos(x.^2)], inf) < ...
-        10*max(h.vscale.*h.epslevel);
+        10*max(vscale(h)*eps);
     
     % Compose g(f), when f and g are CHEBTECH objects and f is array-valued:
     f = testclass.make(@(x) [x x.^2]);
@@ -94,7 +95,7 @@ for n = 1:4
     x = testclass.chebpts(length(h));
     hvalues = h.coeffs2vals(h.coeffs);
     pass(n, 9) = norm(hvalues - [sin(x) sin(x.^2)], inf) < ...
-        10*max(h.vscale.*h.epslevel);
+        10*max(vscale(h)*eps);
     
     % We cannot expect to compose two array-valued CHEBTECH objects f(g):
     try 
@@ -106,14 +107,23 @@ for n = 1:4
         pass(n, 10) = strcmp(ME.identifier, 'CHEBFUN:CHEBTECH:compose:arrval');
     end
     
-    % We cannot expect to compose two array-valued CHEBTECH objects in this way:
+    % We cannot expect to compose two array-valued CHEBTECH objects in this way.
+    % (Actually, we can in R2016a anda above!)
     try 
         f = testclass.make(@(x) [x x.^2]);
         g = testclass.make(@(x) sin(x));
-        compose(f, @plus, g)
-        pass(n, 11) = false;
+        compose(f, @plus, g);
+        if ( verLessThan('matlab', '9.1') )
+            pass(n, 11) = false;
+        else
+            pass(n, 11) = true;
+        end
     catch ME
-        pass(n, 11) = strcmp(ME.identifier, 'CHEBFUN:CHEBTECH:compose:dim');
+        if ( verLessThan('matlab', '9.1') )
+            pass(n, 11) = strcmp(ME.message, 'Matrix dimensions must agree.');
+        else
+            pass(n, 11) = false;
+        end
     end
     
     % Removed by NH Apr 2014. This should be checked at a hgiher level.
