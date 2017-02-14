@@ -26,7 +26,7 @@ classdef spinpref2 < spinpreference
 %     [32]                      the phi-functions.
 %
 %   Nplot                     * Number of grid points in each direction for 
-%     [256]                     plotting. If Nplot>N, the data are interpolated 
+%     [128]                     plotting. If Nplot>N, the data are interpolated 
 %                               to a finer grid.
 %
 %   plot                      * Plot options: 'movie' to plot a movie of the

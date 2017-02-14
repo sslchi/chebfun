@@ -39,7 +39,7 @@ function [uout, tout] = spin2(varargin)
 %
 %        u_t = laplacian(u) + u - (1+1.5i)*u*|u|^2,
 %
-%    on [0 100]^2 from t=0 to t=100, with a random initial condition. 
+%    on [0 100]^2 from t=0 to t=60, with a random initial condition. 
 %    The movie plots the real part of u.
 %
 % Example 2: Gray-Scott equations (fingerprints patterns)
@@ -80,7 +80,7 @@ function [uout, tout] = spin2(varargin)
 %
 %       u_t = -2*laplacian(u) - biharmonic(u) - .9*u + u^2 - u^3,
 %
-%    on [0 20]^2 from t=0 to t=200, with a random initial condition.
+%    on [0 50]^2 from t=0 to t=200, with a random initial condition.
 %
 % Example 5: PDE specified by a SPINOP2
 %
@@ -129,6 +129,18 @@ if ( nargin == 1 ) % e.g., u = spin2('gl2')
     varargin{2} = N;
     varargin{3} = dt;
     varargin{4} = pref;
+    
+elseif ( nargin == 2 ) % e.g., u = spin2('gl2', 'fine')
+    try spinop2(varargin{1});
+    catch
+        error('Unrecognized PDE. See HELP/SPIN2 for the list of PDEs.')
+    end
+    [S, N, dt, pref] = parseInputs(varargin{1}, varargin{2});
+    varargin{1} = S;
+    varargin{2} = N;
+    varargin{3} = dt;
+    varargin{4} = pref;
+    
 elseif ( nargin == 3 ) % e.g., u = spin2(S, 128, 1e-1)
     % Nothing to do here.
 elseif ( nargin == 4 ) % e.g., u = spin2(S, 128, 1e-1, pref)
@@ -152,27 +164,54 @@ end
 
 end
 
-function [S, N, dt, pref] = parseInputs(pdechar)
+function [S, N, dt, pref] = parseInputs(pdechar, opts)
 %PARSEINPUTS   Parse the inputs.
 
+if ( nargin == 2 )
+    if strcmpi(opts, 'fine') == 0
+        error('Second input should be ''fine''. See HELP/SPIN2.')
+    end
+end
 pref = spinpref2();
 S = spinop2(pdechar);
 if ( strcmpi(pdechar, 'GL2') == 1 )
-    dt = 2e-1;
-    N = 64;
-    pref.Nplot = 256;
+    if ( nargin == 1 ) % coarse
+        dt = 2e-1;
+        N = 64;
+    elseif ( nargin == 2 ) % fine
+        dt = 2e-1;
+        N = 128;
+    end
 elseif ( strcmpi(pdechar, 'GS2') == 1 )
-    dt = 4;
-    pref.iterplot = 8;
-    N = 64;
-    pref.Nplot = 256;
+    if ( nargin == 1 ) % coarse
+        dt = 5;
+        N = 96;
+        pref.iterplot = 10;
+    elseif ( nargin == 2 ) % fine
+        dt = 5;
+        N = 192;
+        pref.iterplot = 10;
+    end
 elseif ( strcmpi(pdechar, 'Schnak2') == 1 )
-    dt = 5e-1;
-    pref.iterplot = 10;
-    N = 64;
+    if ( nargin == 1 ) % coarse
+        dt = 5e-1;
+        N = 32;
+        pref.iterplot = 10;
+    elseif ( nargin == 2 ) % fine
+        dt = 5e-1;
+        N = 96;
+        pref.iterplot = 10;
+    end
 elseif ( strcmpi(pdechar, 'SH2') == 1 )
-    dt = 1;
-    N = 64;
+    if ( nargin == 1 ) % coarse
+        dt = 1;
+        N = 64;
+        pref.iterplot = 5;
+    elseif ( nargin == 2 ) % fine
+        dt = 1;
+        N = 128;
+        pref.iterplot = 5;
+    end
 end
 
 end

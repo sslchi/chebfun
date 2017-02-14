@@ -109,7 +109,7 @@ end
             L = @(u) lap(u);
             N = @(u) u - (1 + 1.5i)*u.*(abs(u).^2);
             dom = [0 100 0 100];
-            tspan = [0 100];
+            tspan = [0 60];
             vals = .1*randn(128, 128);
             u0 = chebfun2(vals, dom, 'trig');
             
@@ -119,7 +119,7 @@ end
             N = @(u,v) [3.5e-2*(1 - u) - u.*v.^2; -9.5e-2*v + u.*v.^2];
             G = 1.25;
             dom = G*[0 1 0 1];
-            tspan = [0 8000];
+            tspan = [0 5000];
             u01 = @(x,y) 1 - exp(-150*((x-G/2.05).^2 + (y-G/2.05).^2));
             u01 = chebfun2(u01, dom, 'trig');
             u02 = @(x,y) exp(-150*((x-G/2).^2 + 2*(y-G/2).^2));
@@ -132,7 +132,7 @@ end
             N = @(u,v) [3*(.1 - u + u.^2.*v); 3*(.9 - u.^2.*v)];
             G = 30;
             dom = G*[0 1 0 1];
-            tspan = [0 800];
+            tspan = [0 600];
             u01 = @(x,y) 1 - exp(-2*((x-G/2.15).^2 + (y-G/2.15).^2));
             u01 = chebfun2(u01, dom, 'trig');
             u02 = @(x,y) .9/(.1^2+.9^2) + exp(-2*((x-G/2).^2 + 2*(y-G/2).^2));
@@ -143,9 +143,9 @@ end
         elseif ( strcmpi(pdechar, 'SH2') == 1 )
             L = @(u) -2*lap(u) - biharm(u);
             N = @(u) -.9*u + u.^2 - u.^3;
-            G = 20;
+            G = 50;
             dom = G*[0 1 0 1];
-            tspan = [0 200];
+            tspan = [0 600];
             vals = .1*randn(64, 64);
             u0 = chebfun2(vals, dom, 'trig');       
             
