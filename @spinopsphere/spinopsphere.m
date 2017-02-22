@@ -100,9 +100,9 @@ end
             
         % Ginzburg-Landau equation:
         elseif ( strcmpi(pdechar, 'GL') == 1 )
-            L = @(u) 1e-3*lap(u);
+            L = @(u) 7.5e-4*lap(u);
             N = @(u) u - (1 + 1.5i)*u.*(abs(u).^2);
-            w = 7;
+            w = 11;
             u0 = @(x,y,z) cos(w*x)+cos(w*y)+cos(w*z);
             tt = pi/8; c = cos(tt); s = sin(tt);
             u0 = 1/3*spherefun(@(x,y,z) u0(c*x-s*z,y,s*x+c*z)); 

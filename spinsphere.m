@@ -119,6 +119,16 @@ if ( nargin == 1 ) % e.g., u = spinsphere('gl')
     varargin{2} = N;
     varargin{3} = dt;
     varargin{4} = pref;
+elseif ( nargin == 2 ) % e.g., u = spinsphere('gl', 'fine')
+    try spinopsphere(varargin{1});
+    catch
+        error('Unrecognized PDE. See HELP/SPINSPHERE for the list of PDEs.')
+    end
+    [S, N, dt, pref] = parseInputs(varargin{1}, varargin{2});
+    varargin{1} = S;
+    varargin{2} = N;
+    varargin{3} = dt;
+    varargin{4} = pref;
 elseif ( nargin == 3 ) % e.g., u = spinsphere(S, 128, 1e-1)
     % Nothing to do here.
 elseif ( nargin == 4 ) % e.g., u = spinsphere(S, 128, 1e-1, pref)
@@ -142,9 +152,14 @@ end
 
 end
 
-function [S, N, dt, pref] = parseInputs(pdechar)
+function [S, N, dt, pref] = parseInputs(pdechar, opts)
 %PARSEINPUTS   Parse the inputs.
 
+if ( nargin == 2 )
+    if strcmpi(opts, 'fine') == 0
+        error('Second input should be ''fine''. See HELP/SPINSPHERE.')
+    end
+end
 pref = spinprefsphere();
 S = spinopsphere(pdechar);
 if ( strcmpi(pdechar, 'AC') == 1 )
@@ -152,9 +167,13 @@ if ( strcmpi(pdechar, 'AC') == 1 )
     N = 64;
     pref.Nplot = 256;
 elseif ( strcmpi(pdechar, 'GL') == 1 )
-    dt = 2e-1;
-    N = 128;
-    pref.Nplot = 256;
+    if ( nargin == 1 ) % coarse
+        dt = 2e-1;
+        N = 128;
+    elseif ( nargin == 2 ) % fine
+        dt = 2e-1;
+        N = 192;
+    end
 elseif ( strcmpi(pdechar, 'NLS') == 1 )
     dt = 1e-2;
     N = 128;

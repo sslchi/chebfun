@@ -129,7 +129,6 @@ if ( nargin == 1 ) % e.g., u = spin2('gl2')
     varargin{2} = N;
     varargin{3} = dt;
     varargin{4} = pref;
-    
 elseif ( nargin == 2 ) % e.g., u = spin2('gl2', 'fine')
     try spinop2(varargin{1});
     catch
@@ -140,7 +139,6 @@ elseif ( nargin == 2 ) % e.g., u = spin2('gl2', 'fine')
     varargin{2} = N;
     varargin{3} = dt;
     varargin{4} = pref;
-    
 elseif ( nargin == 3 ) % e.g., u = spin2(S, 128, 1e-1)
     % Nothing to do here.
 elseif ( nargin == 4 ) % e.g., u = spin2(S, 128, 1e-1, pref)
@@ -180,7 +178,7 @@ if ( strcmpi(pdechar, 'GL2') == 1 )
         N = 64;
     elseif ( nargin == 2 ) % fine
         dt = 2e-1;
-        N = 128;
+        N = 256;
     end
 elseif ( strcmpi(pdechar, 'GS2') == 1 )
     if ( nargin == 1 ) % coarse
@@ -190,13 +188,13 @@ elseif ( strcmpi(pdechar, 'GS2') == 1 )
     elseif ( nargin == 2 ) % fine
         dt = 5;
         N = 192;
-        pref.iterplot = 10;
+        pref.iterplot = 2;
     end
 elseif ( strcmpi(pdechar, 'Schnak2') == 1 )
     if ( nargin == 1 ) % coarse
         dt = 5e-1;
         N = 32;
-        pref.iterplot = 10;
+        pref.iterplot = 20;
     elseif ( nargin == 2 ) % fine
         dt = 5e-1;
         N = 96;
@@ -206,10 +204,10 @@ elseif ( strcmpi(pdechar, 'SH2') == 1 )
     if ( nargin == 1 ) % coarse
         dt = 1;
         N = 64;
-        pref.iterplot = 5;
+        pref.iterplot = 20;
     elseif ( nargin == 2 ) % fine
         dt = 1;
-        N = 128;
+        N = 96;
         pref.iterplot = 5;
     end
 end

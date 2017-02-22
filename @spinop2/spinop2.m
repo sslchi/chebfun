@@ -145,7 +145,7 @@ end
             N = @(u) -.9*u + u.^2 - u.^3;
             G = 50;
             dom = G*[0 1 0 1];
-            tspan = [0 600];
+            tspan = [0 1000];
             vals = .1*randn(64, 64);
             u0 = chebfun2(vals, dom, 'trig');       
             
