@@ -31,7 +31,8 @@ function u = poisson(f, const, m, n)
 % the theta- and lambda-direction.
 %
 % LINEAR ALGEBRA: Matrix equations. The matrix equation decouples into n
-% linear systems. This form banded matrices.
+% linear systems with pentadiagonal banded matrices, by exploiting
+% symmetries these can reduced to tridiagonal systems.
 %
 % SOLVE COMPLEXITY:    O(M*N)  with M*N = total degrees of freedom
 
@@ -114,26 +115,45 @@ CFS = zeros(m, n);
 % Form discretization of the theta-dependent operator:
 L = Msin2*DF2m + Mcossin*DF1m;
 
+ii_o = 1+mod(floorm,2):2:m;
+ii_e = 2-mod(floorm,2):2:m;
+
+L_e = L(ii_e,ii_e);
+Im_e = Im(ii_e,ii_e);
 % Solve for the even modes:
-kk = [floor(n/2):-1:1 floor(n/2)+2:n];
-%k_even = [floor(n/2)-1:-2:1 floor(n/2)+3:2:n];
-for k = kk
-    CFS(:,k) = (L + scl(k)*Im) \ F(:,k);
+% kk = [floor(n/2):-1:1 floor(n/2)+2:n];
+% k_even = [floor(n/2)-1:-2:1 floor(n/2)+3:2:n];
+k_even = floor(n/2)-1:-2:1;
+CFSt = CFS;
+for k = k_even
+%     CFS(:,k) = (L + scl(k)*Im) \ F(:,k);
+    CFSt(ii_e,k) = (L_e + scl(k)*Im_e) \ F(ii_e,k);
 end
 
-% % Solve for the odd modes:
+% Solve for the odd modes:
+L_o = L(ii_o,ii_o);
+Im_o = Im(ii_o,ii_o);
 % k_odd = [floor(n/2):-2:1 floor(n/2)+2:2:n];
-% for k = k_odd
+k_odd = floor(n/2):-2:1;
+for k = k_odd
 %     CFS(:,k) = (L + scl(k)*Im) \ F(:,k);
-% end
+    CFSt(ii_o,k) = (L_o + scl(k)*Im_o) \ F(ii_o,k);
+end
 
 % Now do the equation where we need the integral constraint:
 % We will take X_{n/2+1,:} en = 0.
 
 % Second, solve: 
 k = floor(n/2) + 1;
-ii = [1:floorm floorm+2:m];
-CFS(:, k) = [ en ; L( ii, :) ] \ [ 0 ; F(ii, k) ];
-u = spherefun.coeffs2spherefun( CFS ) + const; 
+% ii = [1:floorm floorm+2:m];
+% CFS(:, k) = [ en ; L( ii, :) ] \ [ 0 ; F(ii, k) ];
+CFSt(ii_e, k) = L_e \ F(ii_e, k);
+
+k_odd = floor(n/2):-2:1;
+k_even = floor(n/2)-1:-2:1;
+CFSt(ii_o, floor(n/2)+2:2:n) = -conj(CFSt(ii_o, k_odd(1:end-mod(floorm,2))));
+CFSt(ii_e, floor(n/2)+3:2:n) = conj(CFSt(ii_e, k_even(1:end-(1-mod(floorm,2)))));
+
+u = spherefun.coeffs2spherefun( CFSt ) + const; 
 
 end
