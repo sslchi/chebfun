@@ -68,12 +68,11 @@ scl = diag(DF2n);
 % There is a factor of 4 speed up here, by taking account of real 
 % solution, and even/odd symmetry.
 
-% Underlying discretization grid:
-lam0 = trigpts(n,[-pi, pi]); 
-th0 = trigpts(m,[-pi, pi]); 
-
 % Forcing term:
 if ( isa(f, 'function_handle') )
+    % Underlying discretization grid:
+    lam0 = trigpts(n,[-pi, pi]); 
+    th0 = trigpts(m,[-pi, pi]); 
     [rhs_lam, rhs_theta] = meshgrid(lam0, th0);
     F = feval(f, rhs_lam, rhs_theta);
     tol = 1e5*max(abs(F(:)))*chebfunpref().cheb2Prefs.chebfun2eps;
