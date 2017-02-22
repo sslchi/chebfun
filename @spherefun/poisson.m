@@ -88,13 +88,14 @@ elseif ( isa( f, 'double' ) )
 end
 
 % First, let's project the rhs to have mean zero:
-k = floor(n/2) + 1;
 floorm = floor(m/2);
+floorn = floor(n/2);
+k = floorn + 1;
 mm = (-floorm:ceil(m/2)-1);
 en = 2*pi*(1+exp(1i*pi*mm))./(1-mm.^2);
 en([floorm, floorm + 2]) = 0;
 ii = 1:m;
-meanF = en(ii)*F(ii, k)/en(floor(m/2)+1);
+meanF = en(ii)*F(ii, k)/en(floorn+1);
 
 % Check that the mean of F is zero (or close enough).  If it is not then
 % issue a warning
@@ -104,7 +105,7 @@ if ( abs(meanF) > tol )
         'required for there to exist a solution to the Poisson '...
         'equation. Subtracting the mean off the right hand side now.']);
 end        
-F(floor(m/2)+1,k) = F(floor(m/2)+1,k)-meanF;
+F(floorm+1,k) = F(floorm+1,k)-meanF;
 
 % Multiply the right hand side by (sin(theta)).^2
 F = Msin2*F;
@@ -114,46 +115,39 @@ CFS = zeros(m, n);
 
 % Form discretization of the theta-dependent operator:
 L = Msin2*DF2m + Mcossin*DF1m;
+%
+% Solve for the negative even and negative odd modes:
+%
 
-ii_o = 1+mod(floorm,2):2:m;
-ii_e = 2-mod(floorm,2):2:m;
-
-L_e = L(ii_e,ii_e);
-Im_e = Im(ii_e,ii_e);
-% Solve for the even modes:
-% kk = [floor(n/2):-1:1 floor(n/2)+2:n];
-% k_even = [floor(n/2)-1:-2:1 floor(n/2)+3:2:n];
-k_even = floor(n/2)-1:-2:1;
-CFSt = CFS;
-for k = k_even
-%     CFS(:,k) = (L + scl(k)*Im) \ F(:,k);
-    CFSt(ii_e,k) = (L_e + scl(k)*Im_e) \ F(ii_e,k);
-end
-
-% Solve for the odd modes:
+% Matrices for the odd expansions in theta.
+ii_o = 2-mod(floorm,2):2:m;
 L_o = L(ii_o,ii_o);
 Im_o = Im(ii_o,ii_o);
-% k_odd = [floor(n/2):-2:1 floor(n/2)+2:2:n];
-k_odd = floor(n/2):-2:1;
-for k = k_odd
-%     CFS(:,k) = (L + scl(k)*Im) \ F(:,k);
-    CFSt(ii_o,k) = (L_o + scl(k)*Im_o) \ F(ii_o,k);
+% Matrices for the even expansions in theta.
+ii_e = 1+mod(floorm,2):2:m;
+L_e = L(ii_e,ii_e);
+Im_e = Im(ii_e,ii_e);
+k_neg = floorn:-1:1;
+for k = k_neg;
+    CFS(ii_o,k) = (L_o + scl(k)*Im_o) \ F(ii_o,k);
+    CFS(ii_e,k) = (L_e + scl(k)*Im_e) \ F(ii_e,k);
 end
+% Solve for the zero mode. Odd terms are easy
+k = floorn+1;
+CFS(ii_o,k) = (L_o + scl(k)*Im_o) \ F(ii_o,k);
 
-% Now do the equation where we need the integral constraint:
-% We will take X_{n/2+1,:} en = 0.
+% Solve for the zero mode. Even terms require some care since the operator L
+% is singular
+ii = [1:floor(m/4) floor(m/4)+2:numel(ii_e)];
+CFS(ii_e, k) = [ en(ii_e) ; L_e( ii, :) ] \ [ 0 ; F(ii_e(ii), k) ];
 
-% Second, solve: 
-k = floor(n/2) + 1;
-% ii = [1:floorm floorm+2:m];
-% CFS(:, k) = [ en ; L( ii, :) ] \ [ 0 ; F(ii, k) ];
-CFSt(ii_e, k) = L_e \ F(ii_e, k);
+% Fill in the positive odd modes from the negative odd modes.
+ii = floorn+2:1:n;
+CFS(ii_o, ii) = (-1)^floorm*bsxfun(@times,(-1).^ii,-conj(CFS(ii_o, k_neg(1:numel(ii)))));
 
-k_odd = floor(n/2):-2:1;
-k_even = floor(n/2)-1:-2:1;
-CFSt(ii_o, floor(n/2)+2:2:n) = -conj(CFSt(ii_o, k_odd(1:end-mod(floorm,2))));
-CFSt(ii_e, floor(n/2)+3:2:n) = conj(CFSt(ii_e, k_even(1:end-(1-mod(floorm,2)))));
+% Fill in the negative even modes from the negative even modes.
+CFS(ii_e, ii) = (-1)^floorm*bsxfun(@times,(-1).^ii,-conj(CFS(ii_e, k_neg(1:numel(ii)))));
 
-u = spherefun.coeffs2spherefun( CFSt ) + const; 
+u = spherefun.coeffs2spherefun( CFS ) + const; 
 
 end
