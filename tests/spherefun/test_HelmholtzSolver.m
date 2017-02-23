@@ -1,7 +1,7 @@
 function pass = test_HelmholtzSolver( ) 
 % Test the Helmholtz Solver on the sphere 
 
-tol = 1e-10; 
+tol = 1e2*chebfunpref().cheb2Prefs.chebfun2eps;
 for k = [1 2 3 4]
     
     if k == 1
@@ -23,7 +23,7 @@ for k = [1 2 3 4]
         K = 100.1; 
         u = spherefun.helmholtz((K^2-L*(L+1))*f, K, m, n);
 
-        pass(nxt,k) = ( norm( u - f, 2 ) < 100*tol );
+        pass(nxt,k) = ( norm( u - f, 2 ) < tol );
 
         nxt = nxt + 1; 
         end

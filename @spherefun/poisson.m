@@ -43,6 +43,20 @@ if ( nargin < 4 )
     n = m;
 end
 
+% If m or n are non-positive then throw an error
+if ( ( m <= 0 ) || ( n <= 0 ) )
+    error('CHEBFUN:SPHEREFUN:POISSON:badInput',...
+        'Discretization sizes should be positve numbers');
+end
+
+% If m and n are 1, the solution is easy: it's just the mean value of the 
+% solution passed in by the user.
+% 1/K^2*mean(F).
+if ( ( m == 1 ) && (n == 1 ) )
+    u = spherefun(const);
+    return;
+end
+
 % Construct useful spectral matrices:
 % Please note that DF1m is different than trigspec.diff(m,1) because we 
 % take the coefficient space point-of-view and set the (1,1) entry to be 
@@ -64,9 +78,6 @@ cfs = trigtech(@(theta) sin(pi*theta).^2);
 Msin2 = trigspec.multmat(m, cfs.coeffs);
 Im = speye(m);
 scl = diag(DF2n); 
-
-% There is a factor of 4 speed up here, by taking account of real 
-% solution, and even/odd symmetry.
 
 % Forcing term:
 if ( isa(f, 'function_handle') )
@@ -114,6 +125,10 @@ CFS = zeros(m, n);
 
 % Form discretization of the theta-dependent operator:
 L = Msin2*DF2m + Mcossin*DF1m;
+
+% We take advantage of even/odd symmetry to get a factor of 2 speed up.  
+% TODO: if f is real there is another factor of 2 speed up possible.
+
 %
 % Solve for the negative even and negative odd modes:
 %
@@ -142,10 +157,10 @@ CFS(ii_e, k) = [ en(ii_e) ; L_e( ii, :) ] \ [ 0 ; F(ii_e(ii), k) ];
 
 % Fill in the positive odd modes from the negative odd modes.
 ii = floorn+2:1:n;
-CFS(ii_o, ii) = (-1)^floorm*bsxfun(@times,(-1).^ii,-conj(CFS(ii_o, k_neg(1:numel(ii)))));
+CFS(ii_o, ii) = (-1)^floorn*bsxfun(@times,(-1).^ii,-conj(CFS(ii_o, k_neg(1:numel(ii)))));
 
 % Fill in the negative even modes from the negative even modes.
-CFS(ii_e, ii) = (-1)^floorm*bsxfun(@times,(-1).^ii,-conj(CFS(ii_e, k_neg(1:numel(ii)))));
+CFS(ii_e, ii) = (-1)^floorn*bsxfun(@times,(-1).^ii,-conj(CFS(ii_e, k_neg(1:numel(ii)))));
 
 u = spherefun.coeffs2spherefun( CFS ) + const; 
 

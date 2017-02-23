@@ -21,10 +21,14 @@ function u = helmholtz(f, K, m, n)
 % METHOD: Spectral method (in coeff space). We use the Fourier basis in
 % the theta- and lambda-direction.
 %
-% LINEAR ALGEBRA: Matrix equations. The matrix equation decouples into N
-% linear systems. This form banded matrices.
+% LINEAR ALGEBRA: Matrix equations. The matrix equation decouples into n
+% linear systems with pentadiagonal banded matrices, by exploiting
+% symmetries these can reduced to tridiagonal systems.
 %
 % SOLVE COMPLEXITY:    O(M*N)  with M*N = total degrees of freedom
+
+% TODO: 
+% Make this code adaptive! 
 
 % Solve standard Helmholtz equation. This parameter is kept for developers.
 c = 1;
@@ -86,14 +90,11 @@ Mcossin = trigspec.multmat(m, cfs.coeffs);
 cfs = trigtech(@(theta) sin(pi*theta).^2);
 Msin2 = trigspec.multmat(m, cfs.coeffs);
 
-% Underlying discretization grid:
-lam0 = linspace(-pi, pi, n+1)';
-lam0( end )=[];
-th0 = linspace(-pi, pi, m+1)';
-th0( end )=[];
-
 % Forcing term:
 if ( isa(f, 'function_handle') )
+    % Underlying discretization grid:
+    lam0 = trigpts(n,[-pi, pi]); 
+    th0 = trigpts(m,[-pi, pi]); 
     [rhs_lam, rhs_th] = meshgrid(lam0, th0);
     F = feval(f, rhs_lam, rhs_th);      % Get (trigvals,trigvals) of rhs
     F = trigtech.vals2coeffs(F);        % Get in Fourier basis
@@ -101,6 +102,9 @@ if ( isa(f, 'function_handle') )
 elseif ( isa(f, 'spherefun') )
     F = coeffs2(f, n, m);
 end
+
+floorm = floor(m/2);
+floorn = floor(n/2);
 
 % Calculate the integral constraint constant:
 k = floor(n/2)+1;
@@ -116,21 +120,57 @@ F = Msin2 * F / K^2;
 % Want to solve
 %    X L^T + X DF^T = F
 % subject to zero integral constraints, i.e.,  w^T X_0  = 0.
+% The matrix equation decouples because DF is diagonal.  Also
+% We take advantage of even/odd symmetry to get a factor of 2 speed up.  
+% TODO: if f is real there is another factor of 2 speed up possible.
 
-% Note that the matrix equation decouples because DF is diagonal.
+% Matrix for solution's coefficients:
+CFS = zeros(m, n);
+
+% Form discretization of the theta-dependent operator:
+L = c*(Msin2*DF2m + Mcossin*DF1m)/K^2 + Msin2;
+scl = c*diag(DF2n)/K^2;
+
+% We take advantage of even/odd symmetry to get a factor of 2 speed up.  
+% TODO: if f is real there is another factor of 2 speed up possible.
+
+%
+% Solve for the negative even and negative odd modes:
+%
+
+% Matrices for the odd expansions in theta.
+ii_o = 2-mod(floorm,2):2:m;
+L_o = L(ii_o,ii_o);
+Im_o = Im(ii_o,ii_o);
+% Matrices for the even expansions in theta.
+ii_e = 1+mod(floorm,2):2:m;
+L_e = L(ii_e,ii_e);
+Im_e = Im(ii_e,ii_e);
+k_neg = floorn+1:-1:1;
+for k = k_neg;
+    CFS(ii_o,k) = (L_o + scl(k)*Im_o) \ F(ii_o,k);
+    CFS(ii_e,k) = (L_e + scl(k)*Im_e) \ F(ii_e,k);
+end
 
 % Solve decoupled matrix equation for X, one row at a time:
-CFS = zeros(m, n);
+CFSt = zeros(m, n);
 L = c*(Msin2*DF2m + Mcossin*DF1m)/K^2 + Msin2;
 scl = c*diag(DF2n)/K^2;
 for k = [floor(n/2):-1:1 floor(n/2)+2:n]
-    CFS(:,k) = (L + scl(k)*Im) \ F(:,k);
+    CFSt(:,k) = (L + scl(k)*Im) \ F(:,k);
 end
 
 % Now, do zeroth mode:
 k = floor(n/2)+1;
 ii = [1:floorm floorm+2:m];
-CFS(:, k) = [ en ; L( ii, :) ] \ [ int_const ; F(ii, k) ];
+CFSt(:, k) = [ en ; L( ii, :) ] \ [ int_const ; F(ii, k) ];
+
+% Fill in the positive odd modes from the negative odd modes.
+ii = floorn+2:1:n;
+CFS(ii_o, ii) = (-1)^floorn*bsxfun(@times,(-1).^ii,-conj(CFS(ii_o, k_neg(2:numel(ii)+1))));
+
+% Fill in the negative even modes from the negative even modes.
+CFS(ii_e, ii) = (-1)^floorn*bsxfun(@times,(-1).^ii,-conj(CFS(ii_e, k_neg(2:numel(ii)+1))));
 
 % Now, convert to a spherefun object:
 u = spherefun.coeffs2spherefun(CFS);
