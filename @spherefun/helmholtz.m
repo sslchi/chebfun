@@ -106,14 +106,6 @@ end
 floorm = floor(m/2);
 floorn = floor(n/2);
 
-% Calculate the integral constraint constant:
-k = floor(n/2)+1;
-floorm = floor(m/2);
-mm = (-floorm:ceil(m/2)-1);
-en = 2*pi*(1+exp(1i*pi*mm))./(1-mm.^2);
-en([floorm, floorm + 2]) = 0;
-int_const = en*F(:,k)/K^2;
-
 % Multiple rhs by sin(th)^2 and divide by K^2:
 F = Msin2 * F / K^2;
 
@@ -151,19 +143,6 @@ for k = k_neg;
     CFS(ii_o,k) = (L_o + scl(k)*Im_o) \ F(ii_o,k);
     CFS(ii_e,k) = (L_e + scl(k)*Im_e) \ F(ii_e,k);
 end
-
-% Solve decoupled matrix equation for X, one row at a time:
-CFSt = zeros(m, n);
-L = c*(Msin2*DF2m + Mcossin*DF1m)/K^2 + Msin2;
-scl = c*diag(DF2n)/K^2;
-for k = [floor(n/2):-1:1 floor(n/2)+2:n]
-    CFSt(:,k) = (L + scl(k)*Im) \ F(:,k);
-end
-
-% Now, do zeroth mode:
-k = floor(n/2)+1;
-ii = [1:floorm floorm+2:m];
-CFSt(:, k) = [ en ; L( ii, :) ] \ [ int_const ; F(ii, k) ];
 
 % Fill in the positive odd modes from the negative odd modes.
 ii = floorn+2:1:n;
