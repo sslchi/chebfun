@@ -164,20 +164,19 @@ pref = spinprefsphere();
 S = spinopsphere(pdechar);
 if ( strcmpi(pdechar, 'AC') == 1 )
     dt = 2e-1;
-    N = 64;
+    N = 128;
     pref.Nplot = 256;
+    pref.Clim = [-1 1];
 elseif ( strcmpi(pdechar, 'GL') == 1 )
-    if ( nargin == 1 ) % coarse
-        dt = 2e-1;
-        N = 128;
-    elseif ( nargin == 2 ) % fine
-        dt = 2e-1;
-        N = 192;
-    end
+    dt = 2e-1;
+    N = 128;
+    pref.Nplot = 256;
+    pref.Clim = [-1 1];
 elseif ( strcmpi(pdechar, 'NLS') == 1 )
     dt = 1e-2;
     N = 128;
     pref.Nplot = 256;
+    pref.Clim = [-5 5];
     pref.colormap = 'jet';
 end
 
