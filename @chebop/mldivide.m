@@ -20,13 +20,26 @@ function varargout = mldivide(N, rhs, varargin)
 % Copyright 2017 by The University of Oxford and The Chebfun Developers. 
 % See http://www.chebfun.org/ for Chebfun information.
 
+% For multiple RHS we run simply loop.
+%  TODO: Implement this waaaay farther down the chain for efficiency.
+if ( size(rhs, 2) > 1 )
+    varargout = cell(1,nargout);
+    for j = 1:size(rhs,2)
+        [tmp{1:nargout}] = mldivide(N, rhs(:,j), varargin{:});
+        for k = 1:nargout
+            varargout{k} = horzcat(varargout{k}, tmp{k});
+        end
+    end
+    return
+end
+
 % Are we dealing with an initial or a final value problem. In that case, either
 % we have  
 %   - N.LBC is nonempty, but both N.RBC and N.BC are empty. Here, we are dealing
 %     with an initial value problem, where all conditions are imposed via N.LBC.
 %   - N.RBC is nonempty, but both N.LBC and N.BC are empty. Here, we are dealing
 %     with a final value problem, where all conditions are imposed via N.RBC.
-isIVP =  ( ~isempty(N.lbc) && isempty(N.rbc) && isempty(N.bc) ) || ...
+isIVP = ( ~isempty(N.lbc) && isempty(N.rbc) && isempty(N.bc) ) || ...
      ( isempty(N.lbc) && ~isempty(N.rbc) && isempty(N.bc) );
 
 % If we did not get preferences passed in, we need to create a cheboppref so
