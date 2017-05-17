@@ -379,9 +379,6 @@ NN = 1e4;
 % Main loop:
 for n = 1:4
     % Sample points:
-    % Next line enables us to do pretty well near poles
-    %Z = linspace(dom(1)+1.37e-8*diff(dom), dom(2)-3.08e-9*diff(dom), 1 + 2^n).';
-    NN = NN*2;
     nn = round(NN/length(zj));
     Z = [];
     if dom(1)+1.37e-8*diff(dom) > zj(1)
@@ -404,7 +401,7 @@ for n = 1:4
     err(1,1) = norm(F(Z) - r(Z), inf);
     
     Zrefined = linspace(dom(1)+1.37e-8*diff(dom), dom(2)-3.08e-9*diff(dom), ...
-        round(1.5 * NN * length(zj))).';
+        round(1.5 * NN)).';
     err(2,1) = norm(F(Zrefined) - r(Zrefined), inf);
     
     if ( all(err < reltol) )
