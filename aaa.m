@@ -208,6 +208,11 @@ while ( ~isempty(varargin) )
     end
 end
 
+if ( ischar(F) )
+    % F is given as a string input. Convert it to a function handle.
+    F = str2op(vectorize(F));
+end
+
 
 % Deal with Z and F:
 if ( ~exist('Z', 'var') && isfloat(F) )
@@ -234,10 +239,6 @@ if ( exist('Z', 'var') )
             error('CHEBFUN:aaa:lengthFZ', ...
                 'Inputs F and Z must have the same length.')
         end
-    elseif ( ischar(F) )
-        % F is given as a string input. Convert it to a function handle.
-        F = str2op(vectorize(F));
-        F = F(Z);
     else
         error('CHEBFUN:aaa:UnknownF', 'Input for F not recognized.')
     end
@@ -370,12 +371,29 @@ function [r, pol, res, zer, zj, fj, wj, errvec] = ...
 
 % Flag if function has been resolved:
 isResolved = 0;
+NN = 1e4;
+[r, pol, res, zer, zj, fj, wj, errvec] = aaa(F, ...
+    linspace(dom(1)+1.37e-8*diff(dom),dom(end)-3.08e-9*diff(dom), ...
+    NN), 'tol', tol, 'mmax', mmax, 'cleanup', cleanup_flag);
 
 % Main loop:
-for n = 5:14
+for n = 1:4
     % Sample points:
     % Next line enables us to do pretty well near poles
-    Z = linspace(dom(1)+1.37e-8*diff(dom), dom(2)-3.08e-9*diff(dom), 1 + 2^n).';
+    %Z = linspace(dom(1)+1.37e-8*diff(dom), dom(2)-3.08e-9*diff(dom), 1 + 2^n).';
+    NN = NN*2;
+    nn = round(NN/length(zj));
+    Z = [];
+    if dom(1)+1.37e-8*diff(dom) > zj(1)
+        Z = linspace(dom(1)+1.37e-8*diff(dom), zj(1), nn);
+    end
+    for ii = 1:length(zj)-1
+        Z = [Z; linspace(zj(ii), zj(ii+1),nn)];
+    end
+    if dom(end)-3.08e-9*diff(dom) < zj(end)
+        Z = [Z; linspace(zj(end)-3.08e-9*diff(dom), dom(end), nn)];
+    end
+    Z = unique(Z);
     [r, pol, res, zer, zj, fj, wj, errvec] = aaa(F, Z, 'tol', tol, ...
         'mmax', mmax, 'cleanup', cleanup_flag);
     
@@ -386,7 +404,7 @@ for n = 5:14
     err(1,1) = norm(F(Z) - r(Z), inf);
     
     Zrefined = linspace(dom(1)+1.37e-8*diff(dom), dom(2)-3.08e-9*diff(dom), ...
-        round(1.5 * (1 + 2^(n+1)))).';
+        round(1.5 * NN * length(zj))).';
     err(2,1) = norm(F(Zrefined) - r(Zrefined), inf);
     
     if ( all(err < reltol) )
