@@ -385,7 +385,9 @@ for n = 1:4
         Z = linspace(dom(1)+1.37e-8*diff(dom), zj(1), nn);
     end
     for ii = 1:length(zj)-1
-        Z = [Z; linspace(zj(ii), zj(ii+1),nn)];
+        Z = [Z; linspace(zj(ii), zj(ii+1),nn)];     % equispaced sampling
+                                                    % between each pair of
+                                                    % support points
     end
     if dom(end)-3.08e-9*diff(dom) < zj(end)
         Z = [Z; linspace(zj(end)-3.08e-9*diff(dom), dom(end), nn)];
