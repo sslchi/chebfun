@@ -50,6 +50,8 @@ function [r, pol, res, zer, zj, fj, wj, errvec] = aaa(F, varargin)
 
 if ( needZ )
     % Z was not provided.  Try to resolve F on its domain.
+    % Use a looser tolerance.
+    tol = 1e-11;
     [r, pol, res, zer, zj, fj, wj, errvec] = ...
         adaptive_aaa(F, dom, tol, mmax, cleanup_flag, mmax_flag);
     return
@@ -404,37 +406,82 @@ fj(I) = [];
 % Error in the sample points:
 err = norm(Fvals - R, inf);
 errvec = [errvec; err];
+r = @(zz) reval(zz, zj, fj, wj);
     
 isResolved = 0;
 for m = 2:mmax
     
-    % Test if rational approximant is accurate:
-    reltol = tol * norm(F(Z), inf);
-    
-    % On Z(n):
-    err(1,1) = norm(F(Z) - r(Z), inf);
-    
-    Zrefined = linspace(dom(1)+1.37e-8*diff(dom), dom(2)-3.08e-9*diff(dom), ...
-        round(1.5 * NN)).';
-    err(2,1) = norm(F(Zrefined) - r(Zrefined), inf);
-    
-    if ( all(err < reltol) )
-        % Final check that the function is resolved, inspired by sampleTest().
-        % Pseudo random sample points in [-1, 1]:
-        xeval = [-0.357998918959666; 0.036785641195074];
-        % Scale to dom:
-        xeval = (dom(2) - dom(1))/2 * xeval + (dom(2) + dom(1))/2;
+        zjj = [dom(1); sort(zj); dom(2)];
+        zjj = unique(zjj);
+        for j = 1:length(zjj)-1
+            Z = [Z; linspace(zjj(j), zjj(j+1), 11).'];
+        end
+        Z = unique(Z);
+        J = 1:length(Z);
+        Fvals = F(Z);
+        [~, jj] = max(abs(Fvals - r(Z)));
+        zj = [zj; Z(jj)];
+        fj = [fj; Fvals(jj)];
+        [~, idx] = intersect(Z,zj,'stable');
+        J(idx) = [];
+        C = [];
+        for ii = 1:length(zj)
+            C = [C 1./(Z - zj(ii))];
+        end
+        SF = spdiags(Fvals, 0, length(Z), length(Z));
+        Sf = diag(fj);
+        A = SF*C - C*Sf;
+        [~, ~, V] = svd(A(J,:), 0);
+        wj = V(:,size(V,2));
         
-        if ( norm(F(xeval) - r(xeval), inf) < reltol )
+        % Rational approximant on Z:
+        N = C*(wj.*fj);                     % Numerator
+        D = C*wj;                           % Denominator
+        R = Fvals;
+        R(J) = N(J)./D(J);
+    
+        I = find(wj == 0);
+        zj(I) = [];
+        wj(I) = [];
+        fj(I) = [];
+    
+        % Error in the sample points:
+        err = norm(Fvals - R, inf);
+        errvec = [errvec; err];    
+        r = @(zz) reval(zz, zj, fj, wj);
+        err = @(x) F(x)-r(x);   
+    
+        % Test if rational approximant is accurate:
+        reltol = tol * norm(F(Z), inf);
+        
+        if (norm(err(Z),'inf') <= reltol )
             isResolved = 1;
             break
-        end
-    end
+        end     
 end
 
 if ( ( isResolved == 0 ) && ~mmax_flag )
     warning('CHEBFUN:aaa:notResolved', ...
         'Function not resolved using %d pts.', length(Z))
+end
+
+% Remove support points with zero weight:
+I = find(wj == 0);
+zj(I) = [];
+wj(I) = [];
+fj(I) = [];
+
+% Construct function handle:
+r = @(zz) reval(zz, zj, fj, wj);
+
+% Compute poles, residues and zeros:
+[pol, res, zer] = prz(r, zj, fj, wj);
+
+
+% Remove Froissart doublets:
+if cleanup_flag
+    [r, pol, res, zer, zj, fj, wj] = cleanup(r, pol, res, ...
+                                                zer, zj, fj, wj, Z, F(Z));
 end
 
 end % End of ADAPTIVE_AAA().
