@@ -423,7 +423,7 @@ for m = 2:mmax
         zjj = [dom(1); sort(zj); dom(2)];
         zjj = unique(zjj);
         for j = 1:length(zjj)-1
-            Z = [Z; linspace(zjj(j), zjj(j+1), 11).'];
+            Z = [Z; linspace(zjj(j), zjj(j+1), 16).'];
         end
         Z = unique(Z);
         J = 1:length(Z);
@@ -460,8 +460,8 @@ for m = 2:mmax
         r = @(zz) reval(zz, zj, fj, wj);
         err = @(x) F(x)-r(x);   
     
-        % Test if rational approximant is accurate:
-        
+        % Test if rational approximant is accurate on the current
+        % sample set:
         if endpointPole
             reltol = tol;
         else
