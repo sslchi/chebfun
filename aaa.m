@@ -51,7 +51,7 @@ function [r, pol, res, zer, zj, fj, wj, errvec] = aaa(F, varargin)
 if ( needZ )
     % Z was not provided.  Try to resolve F on its domain.
     [r, pol, res, zer, zj, fj, wj, errvec] = ...
-        aaa_autoZ(F, dom, tol, mmax, cleanup_flag, mmax_flag);
+        adaptive_aaa(F, dom, tol, mmax, cleanup_flag, mmax_flag);
     return
 end
 
@@ -363,38 +363,50 @@ r = @(zz) reval(zz, z, f, w);
 end % End of CLEANUP().
 
 
-%% Automated choice of sample set
+%% Automated and adaptive choice of sample set
 
 function [r, pol, res, zer, zj, fj, wj, errvec] = ...
-    aaa_autoZ(F, dom, tol, mmax, cleanup_flag, mmax_flag)
+    adaptive_aaa(F, dom, tol, mmax, cleanup_flag, mmax_flag)
 %
 
 % Flag if function has been resolved:
-isResolved = 0;
-NN = 1e4;
-[r, pol, res, zer, zj, fj, wj, errvec] = aaa(F, ...
-    linspace(dom(1)+1.37e-8*diff(dom),dom(end)-3.08e-9*diff(dom), ...
-    NN), 'tol', tol, 'mmax', mmax, 'cleanup', cleanup_flag);
 
-% Main loop:
-for n = 1:4
-    % Sample points:
-    nn = round(NN/length(zj));
-    Z = [];
-    if dom(1)+1.37e-8*diff(dom) > zj(1)
-        Z = linspace(dom(1)+1.37e-8*diff(dom), zj(1), nn);
-    end
-    for ii = 1:length(zj)-1
-        Z = [Z; linspace(zj(ii), zj(ii+1),nn)];     % equispaced sampling
-                                                    % between each pair of
-                                                    % support points
-    end
-    if dom(end)-3.08e-9*diff(dom) < zj(end)
-        Z = [Z; linspace(zj(end)-3.08e-9*diff(dom), dom(end), nn)];
-    end
-    Z = unique(Z);
-    [r, pol, res, zer, zj, fj, wj, errvec] = aaa(F, Z, 'tol', tol, ...
-        'mmax', mmax, 'cleanup', cleanup_flag);
+
+errvec = [];
+
+initN = 17;
+J = 1:initN;
+Z = linspace(dom(1),dom(2), initN).';
+Fvals = F(Z);
+SF = spdiags(Fvals, 0, initN, initN);
+R = mean(Fvals);
+[~,jj] = max(abs(Fvals-R));
+J(J == jj) = [];
+zj = Z(jj);
+fj = Fvals(jj);
+C = 1./(Z-Z(jj));
+Sf = diag(fj);
+A = SF*C - C*Sf;
+[~,~, V] = svd(A(J,:), 0);
+wj = V(:,1);
+
+% Rational approximant on Z:
+N = C*(wj.*fj);                     % Numerator
+D = C*wj;                           % Denominator
+R = Fvals;
+R(J) = N(J)./D(J);
+    
+I = find(wj == 0);
+zj(I) = [];
+wj(I) = [];
+fj(I) = [];
+    
+% Error in the sample points:
+err = norm(Fvals - R, inf);
+errvec = [errvec; err];
+    
+isResolved = 0;
+for m = 2:mmax
     
     % Test if rational approximant is accurate:
     reltol = tol * norm(F(Z), inf);
@@ -425,7 +437,7 @@ if ( ( isResolved == 0 ) && ~mmax_flag )
         'Function not resolved using %d pts.', length(Z))
 end
 
-end % End of AAA_AUTOZ().
+end % End of ADAPTIVE_AAA().
 
 function op = str2op(op)
     % Convert string inputs to either numeric format or function_handles.
