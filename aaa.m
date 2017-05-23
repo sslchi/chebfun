@@ -369,10 +369,20 @@ end % End of CLEANUP().
 
 function [r, pol, res, zer, zj, fj, wj, errvec] = ...
     adaptive_aaa(F, dom, tol, mmax, cleanup_flag, mmax_flag)
-%
 
 % Flag if function has been resolved:
+isResolved = 0;
 
+diffDom = diff(dom);
+endpointPole = false;
+if ( abs(F(dom(1))) == Inf )
+    dom(1) = dom(1) + 1e-8*diffDom;
+    endpointPole = true;
+end
+if ( abs(F(dom(2))) == Inf )
+    dom(2) = dom(2) - 1e-8*diffDom;
+    endpointPole = true;
+end
 
 errvec = [];
 
@@ -408,7 +418,6 @@ err = norm(Fvals - R, inf);
 errvec = [errvec; err];
 r = @(zz) reval(zz, zj, fj, wj);
     
-isResolved = 0;
 for m = 2:mmax
     
         zjj = [dom(1); sort(zj); dom(2)];
@@ -452,7 +461,12 @@ for m = 2:mmax
         err = @(x) F(x)-r(x);   
     
         % Test if rational approximant is accurate:
-        reltol = tol * norm(F(Z), inf);
+        
+        if endpointPole
+            reltol = tol;
+        else
+            reltol = tol * norm(F(Z), inf);
+        end
         
         if (norm(err(Z),'inf') <= reltol )
             isResolved = 1;
