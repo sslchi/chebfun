@@ -93,7 +93,9 @@ if ( ~isa(f,'chebfun') ) % check if input is chebfun; if not, look for
     end
     
     fHandle = str2op(vectorize(f));
+    warning off
     f = chebfun(f, dom, 'splitting', 'on');
+    warning on
 else % f is a chebfun input
     fHandle = @(x) feval(f, x);
 end
