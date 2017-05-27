@@ -25,7 +25,7 @@ function varargout = subsref(f, index)
 %
 % See also FEVAL, GET, RESTRICT, SUBSREF.
 
-% Copyright 2016 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 idx = index(1).subs;
@@ -71,12 +71,19 @@ switch index(1).type
             return
             
         elseif ( length(idx) == 1 )
-            x = real(idx{1});
-            y = imag(idx{1});
-            out = feval(f, x, y);
-            varargout = {out};
+            % We have f(z): 
+            if ( isreal( f ) && isreal( idx{1} ) ) 
+                % The input of the function should be two real variables: 
+                error('SEPARABLEAPPROX:SUBSREF:REAL',...
+                    'Object is a function of two real variables.');
+            else
+                % We have f(x+1i*y): 
+                x = real(idx{1});
+                y = imag(idx{1});
+                out = feval(f, x, y);
+                varargout = {out};
             return
-
+            end
         else
             error('CHEBFUN:SEPARABLEAPPROX:subsref:inputs', ...
                 'Can only evaluate at functions (X,Y)')

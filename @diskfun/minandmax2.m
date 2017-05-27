@@ -11,7 +11,7 @@ function [Y, X] = minandmax2( f )
 %
 % See also DISKFUN/MAX2, DISKFUN/MIN2, DISKFUN/NORM.
 
-% Copyright 2016 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 % check for empty DISKFUN.
@@ -165,6 +165,22 @@ elseif ( length(f) >= maxsize )
     
     error('CHEBFUN:DISKFUN:minandmax2:length', 'Rank is too large.');
     
+end
+
+% If the location of the max/min is outside of [0,1]x[-pi,pi], which can happen
+% because Diskfun is based on the double Fourier sphere method, then
+% translate back to [0,1]x[-pi,pi] using BMC symmetry:
+
+% check minimum:
+if ( X(1,1) < 0 )
+    X(1,1) = X(1,1)+1;
+    X(1,2) = -X(1,2);
+end
+
+% check maximum:
+if ( X(2,1) < 0 )
+    X(2,1) = X(2,1)+1;
+    X(2,2) = -X(2,2);
 end
 
 

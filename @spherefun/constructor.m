@@ -25,7 +25,7 @@ function g = constructor(g, op, varargin)
 %
 % See also SPHEREFUN.
 
-% Copyright 2016 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 if ( nargin == 0 )          % SPHEREFUN( )
@@ -79,7 +79,7 @@ end
 
 % Check for op = @(lam,th) constant function
 [ll, tt] = meshgrid(dom(1:2), dom(3:4));
-if ( numel(op(ll,tt)) == 1 )
+if ( ~vectorize && numel(op(ll,tt)) == 1 )
     op1 = op;
     op = @(ll, tt) op1(ll, tt) + 0*ll;
 end
@@ -247,7 +247,11 @@ function [pivotIndices, pivotArray, removePole, isHappy, cols, pivots, ...
 
 % Setup
 [m, n] = size(F);
-minSize = min(m, n);
+% Since we are psychologically operating on a doubled up function the 
+% maximum rank is not just min(m,n), but min(2*m-2,n).  The -2 here comes
+% from the fact that the poles of F are sampled and the doubled up grid
+% does not include -pi (becaue of periodicity).
+minSize = min(2*m-2, n);
 width = minSize/factor;
 pivotIndices = []; 
 pivotArray = [];
@@ -265,7 +269,7 @@ end
 % Only information at the poles is given.
 if ( m == 2 ) 
     cols = F(:, 1);
-    rows = F(1, :).';
+    rows = ones(n,1);
     idxPlus = 1;
     idxMinus = [];
     pivotArray = [1 0];

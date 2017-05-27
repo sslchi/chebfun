@@ -26,7 +26,7 @@ function g = constructor(g, op, varargin)
 %
 % See also DISKFUN.
 
-% Copyright 2016 by The University of Oxford and The Chebfun Developers.
+% Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 if ( nargin == 0 )          % DISKFUN( )
@@ -82,7 +82,7 @@ end
 
 % Check for op = @(lam,th) constant function
 [ll, tt] = meshgrid(dom(1:2), dom(3:4));
-if ( numel(op(ll,tt)) == 1 )
+if ( ~vectorize && numel(op(ll,tt)) == 1 )
     op1 = op;
     op = @(ll, tt) op1(ll, tt) + 0*ll;
 end
@@ -175,7 +175,7 @@ while ( ~isHappy && ~failure )
 end
 
 % Simplifying rows and columns after they are happy.
-g = simplify( g, pref.chebfuneps );
+g = simplify( g, pseudoLevel );
 
 % Fix the rank, if in nonadaptive mode.
 g = fixTheRank( g , fixedRank );
@@ -258,7 +258,7 @@ isHappy = 0;  % Assume we are not happy
 % Only information at the origin is given.
 if ( m == 1 ) 
     cols = F(:, 1);
-    rows = F(1, :).';
+    rows = ones(n,1);
     idxPlus = 1;
     idxMinus = [];
     pivotArray = [1 0];
@@ -640,7 +640,7 @@ while ( ~(happy_columns && happy_rows) && ~failure )
     temp1 = sum([colsPlus colsMinus],2); 
     temp2 = sum([colsPlus -colsMinus],2);
     
-    colValues = [ flipud(temp2); temp1(2:m)];
+    colValues = [flipud(temp2); temp1(2:end)];
     colData.hscale = norm(dom(3:4), inf);
     colData.vscale = vscale;
     colChebtech1 = chebtech2.make(colValues, colData);
@@ -663,7 +663,7 @@ while ( ~(happy_columns && happy_rows) && ~failure )
     % Adaptive:
     if( ~happy_columns )
         m = 2*m;
-        ii = [1:2:m+1 m+2:2:2*m]; 
+        ii = 1:2:m+1;
         id_rows = ii(id_rows); 
     end
     
