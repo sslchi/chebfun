@@ -19,7 +19,7 @@ F = diskfunv(f, g);
 G = diskfunv(diff(f, 1,1), diff(g, 1, 1)); 
 pass(j) = ( norm(2*diffx(F)-diff(F, 1, 1)-G) < tol); j = j+1;
 G = diskfunv(diff(f, 1, 3), diff(g, 1, 3)); 
-pass(j) = ( norm(2*diffx(F, 3) - diff(F, 1, 3)-G) < tol); j = j+1;
+pass(j) = ( norm(2*diffx(F, 3) - diff(F, 1, 3)-G) < 3*tol); j = j+1;
 G = diskfunv(diff(f, 2, 1), diff(g, 2, 1)); 
 pass(j) = ( norm(2*diffy(F) - diff(F, 2, 1)-G) < tol); j = j+1; 
 G = diskfunv(diff(f, 2, 2), diff(g, 2, 2)); 
