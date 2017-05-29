@@ -11,7 +11,8 @@ if ( isempty(f) )
 end
 
 g = rotate(f, -pi/4);
-g.rows = flipud(g.rows); 
+g = flipud(g);
+%g.rows = flipud(g.rows); 
 g = rotate(g, pi/4); 
 
 end

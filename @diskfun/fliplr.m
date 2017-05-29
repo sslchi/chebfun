@@ -14,7 +14,8 @@ if ( isempty( g ) )
 end 
 
 f = g; 
+f = flipud(g); 
 f.cols = flipud(g.cols); 
-f.rows = flipud(g.rows); 
+%f.rows = flipud(g.rows); 
 
 end

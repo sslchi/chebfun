@@ -1,4 +1,4 @@
-function u = poisson_disk_ADIparity(f, n)
+function [u, ZZ, DD, YY] = poisson_disk_ADIparity(f, n)
 %does ADI to find soln to Poisson's eqn. 
 %uses parity prop and returns a diskfun
 
@@ -18,7 +18,7 @@ function u = poisson_disk_ADIparity(f, n)
     fp.idxMinus = [];
     
     %call ADI: 
-    [~,ZZ, DD, YY] = poisson_disk_ADI(fp, n);
+    [ZZ, DD, YY] = poisson_disk_ADI_II(fp, n);
     
     %build a diskfun (currently this is not quite correct)
     c = real(chebfun(chebtech2({'',ZZ})));
@@ -29,10 +29,30 @@ function u = poisson_disk_ADIparity(f, n)
     up.pivotValues = 1./diag(DD);
     up.idxPlus = 1:length(up.pivotValues); 
     up.idxMinus = []; 
-    %u.pivotLocations = not sure what goes here
-    %up.nonZeroPoles =; %think more about this
+    %up.pivotLocations = nan(length(up.pivotValues), 2); %was not constructed with pivots; need a nonempty
+                            %value here
+    up.nonZeroPoles = 0; %need to deal with this!                        
+   %check for a nonzero pole
+ 
+    vp = feval(up,0,0); 
+    if abs(vp) > 1e-14
+       up.nonZeroPoles = 1; 
+    else
+       up.nonZeroPoles = 0; 
+    end                        
+                            
+    % in other routines,
+    % it is assumed that all pole information is stored in first row and 
+    % col, so we need to adjust our representation.
+    % Unfortunately, I'm not sure how this can be done in coeff space using
+    % the current compression plus algorithm (relies on fact that pole is
+    % already stored correctly).
     
    
+    
+    ZZ1 = ZZ; 
+    DD1 = DD; 
+    YY1 = YY; 
     %odd-antiperiodic
     id = f.idxMinus;
     fm = f;
@@ -44,7 +64,7 @@ function u = poisson_disk_ADIparity(f, n)
     fm.idxPlus = [];
     fm.nonZeroPoles = 0;
     
-    [~, ZZ, DD, YY] = poisson_disk_ADI(fp, n);
+    [ZZ, DD, YY] = poisson_disk_ADI_II(fm, n);
     
     c = real(chebfun(chebtech2({'',ZZ})));
     r = real(chebfun(YY,[-pi,pi],'coeffs','periodic'));
@@ -54,8 +74,10 @@ function u = poisson_disk_ADIparity(f, n)
     um.pivotValues = 1./diag(DD);
     um.idxMinus = 1:length(up.pivotValues); 
     um.idxPlus = []; 
-    %u.pivotLocations = not sure what goes here
-
+    %um.pivotLocations = nan(length(up.pivotValues), 2); 
+    ZZ = [ZZ1 ZZ]; 
+    DD = diag([diag(DD1);diag(DD)]); 
+    YY = [YY1 YY]; 
     
     %
     %combine results
@@ -75,8 +97,11 @@ function u = poisson_disk_ADIparity(f, n)
     u.rows = rows;
     u.pivotValues = pivots;
     %u.pivotLocations = locations;
+    u.pivotLocations = nan(length(u.pivotValues), 2); 
     u.idxPlus = idxPlus;
     u.idxMinus = idxMinus;
     u.nonZeroPoles = up.nonZeroPoles;
-    
+   
+    %rotate required due to SVD
+    u = flipud(u); 
 end

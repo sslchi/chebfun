@@ -14,6 +14,25 @@ if ( isempty( g ) )
     return
 end 
 f = g; 
-f.rows = flipud(g.rows); 
-
+% flipud command for trigfuns will not work correctly if # modes is even.
+ m = length(g.rows); 
+ r = rank(g); 
+ if (mod(m,2)==0)
+       R = g.rows; 
+       rtechs = R.funs{1}.onefun;
+       % Alias to get the extra zero in place.
+       rtechs.coeffs = rtechs.alias(rtechs.coeffs, m+1); 
+       g.rows.funs{1}.onefun = rtechs;
+       f.rows = flipud(g.rows); 
+       R = f.rows; 
+       rtechs = R.funs{1}.onefun;
+       % Alias to remove zero.
+       rtechs.coeffs = rtechs.alias(rtechs.coeffs, m); 
+       f.rows.funs{1}.onefun = rtechs;
+       
+ else
+       f.rows = flipud(g.rows);
+ end   
+        
+        
 end
