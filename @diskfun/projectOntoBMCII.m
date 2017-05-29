@@ -71,7 +71,7 @@ if ( ~isempty(evenModes) )
     factor = 1/length(even)*(sum(Xe(1:2:end, :),1)-sum(Xe(2:2:end, :),1));
     C = ((-1*ones(length(even), 1)).^((2:length(even)+1)'))*factor; 
     %now add C to X
-    X(even, evenModes) = Xe+C; 
+    X(even, evenModes) = Xe-C; 
      
 end
 

@@ -29,9 +29,8 @@ function [u, ZZ, DD, YY] = poisson_disk_ADIparity(f, n)
     up.pivotValues = 1./diag(DD);
     up.idxPlus = 1:length(up.pivotValues); 
     up.idxMinus = []; 
-    %up.pivotLocations = nan(length(up.pivotValues), 2); %was not constructed with pivots; need a nonempty
-                            %value here
-    up.nonZeroPoles = 0; %need to deal with this!                        
+    up.pivotLocations = nan(length(up.pivotValues), 2); 
+    up.nonZeroPoles = 0;                       
    %check for a nonzero pole
  
     vp = feval(up,0,0); 
@@ -40,16 +39,64 @@ function [u, ZZ, DD, YY] = poisson_disk_ADIparity(f, n)
     else
        up.nonZeroPoles = 0; 
     end                        
-                            
-    % in other routines,
-    % it is assumed that all pole information is stored in first row and 
-    % col, so we need to adjust our representation.
-    % Unfortunately, I'm not sure how this can be done in coeff space using
-    % the current compression plus algorithm (relies on fact that pole is
-    % already stored correctly).
     
+    %the ADI algorithm results in information about the pole
+    % being distributed across all rows and cols. 
+    % We assume in all other diskfun routines that all
+    % pole information is contained in first row/col only.
+    %  Not sure how to fix this without 
+    % using value space. 
+%     m = length(f.rows); 
+%     nn = length(f.cols); 
+%     uv = sample(up, m +mod(m,2), nn);
+%     uv = sample(up); 
+%     uv = diskfun(uv); 
+    vp = diskfun(@(x,y) 0*x-vp); %build const. diskfun value at pole. 
+    %upnew = uv-vp; 
+    %up = uv; %test whether correct pole info fixes the accuracy!
+    %upzp = @separableApprox.plus(up,vp, 1); %separate into zero-pole part
+                                    % using compression plus.
    
     
+fScl = diag(1./up.pivotValues);
+gScl = diag(1./vp.pivotValues);
+cols = [up.cols, vp.cols];
+rows = [up.rows, vp.rows];
+
+[Qcols, Rcols] = qr(cols);
+[Qrows, Rrows] = qr(rows);
+
+Zt = zeros(length(fScl), length(gScl));
+Dt = [ fScl, Zt ; Zt.', gScl ];
+[U, S, V] = svd(Rcols * Dt * Rrows.');
+% Take diagonal from SIGMA:
+s = diag(S);
+
+% Compress the format if possible.
+% [TODO]: What should EPS be in the tolerance check below?
+vup = vscale(up); 
+vvp = vscale(vp);
+
+vscl = 2*max(vup, vvp); 
+% Remove singular values that fall below eps*vscale: 
+idx = find( s > 10*eps * vscl, 1, 'last');
+
+if ( isempty(idx) )
+    % Return 0 separableApprox
+    h = 0*f;
+else
+    U = U(:,1:idx);
+    V = V(:,1:idx);
+    s = s(1:idx);
+    upzp = up;
+    upzp.cols = Qcols * U;
+    upzp.rows = Qrows * conj(V);
+    % [TODO]: PivotValues have very little meaning after this compression step.
+    % For now we assign the singular values as the pivot values. 
+    upzp.pivotValues = 1./s;
+end                               
+                                    
+                                                             
     ZZ1 = ZZ; 
     DD1 = DD; 
     YY1 = YY; 
@@ -72,7 +119,7 @@ function [u, ZZ, DD, YY] = poisson_disk_ADIparity(f, n)
     um.cols = c;
     um.rows = r; 
     um.pivotValues = 1./diag(DD);
-    um.idxMinus = 1:length(up.pivotValues); 
+    um.idxMinus = 1:length(um.pivotValues); 
     um.idxPlus = []; 
     %um.pivotLocations = nan(length(up.pivotValues), 2); 
     ZZ = [ZZ1 ZZ]; 
@@ -102,6 +149,5 @@ function [u, ZZ, DD, YY] = poisson_disk_ADIparity(f, n)
     u.idxMinus = idxMinus;
     u.nonZeroPoles = up.nonZeroPoles;
    
-    %rotate required due to SVD
     u = flipud(u); 
 end
