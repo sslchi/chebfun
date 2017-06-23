@@ -29,7 +29,7 @@ function [u, ZZ, DD, YY] = PoissonDisk_parity(f, n)
     [ZZ, DD, YY] = poisson_diskADI(fp, n);
     
     %build a diskfun 
-    c = real(chebfun(chebtech2({'',ZZ})));
+    c = real(chebfun(ZZ, 'coeffs')); 
     r = real(chebfun(YY,[-pi,pi],'coeffs','periodic'));
     up = fp;
     up.cols = c;
@@ -47,12 +47,12 @@ function [u, ZZ, DD, YY] = PoissonDisk_parity(f, n)
     % pole information is contained in first row/col only. We must correct
     % this structure. 
     
-%     uv = sample(up); 
-%    [vp, poleconst] = checkPole(uv(1,:), tol);
-%     if poleconst==0
-%         error('pole is not constant-valued')
-%     end
-    vp = feval(up,0,0); 
+    uv = sample(up); 
+   [vp, poleconst] = checkPole(uv(1,:), tol);
+    if poleconst==0
+        error('pole is not constant-valued')
+    end
+    %vp = feval(up,0,0); 
     if abs(vp) < tol;                      
        up.nonZeroPoles = 0; 
        %enforce that each rank-1 term is zero at pole
@@ -363,6 +363,8 @@ p = gam*dn; %optimal shift parameters
 q = -Tinv(-p);
 p = Tinv(p);
 %%
+
+
 % Now do factored ADI
 %--------Main loop: performs factored ADI ------------------------
 YY =[];
@@ -387,33 +389,33 @@ YY = YY.';
 %-----compress results ----------
 
 
-%share diag
-ds = sign(diag(DD));
-d = sqrt(abs(diag(DD)));
-ZZ = ZZ*diag(d); 
-YY = YY*diag(d.*ds);
-
-
-%compression step
-[QZ, RZ] = qr( ZZ, 0); 
-[QY, RY] = qr( YY, 0);
-
-% XX * YY^T = (QX*RX) * (QY*RY)^T = QX*(RX*RY^T)*QY^T
-inner_piece = RZ*RY'; 
-[U, S, V ] = svd( inner_piece ); 
-tol = eps; 
-idx = find(diag(S)>tol*S(1,1), 1, 'last'); 
-U = U(:,1:idx); 
-V = V(:,1:idx); 
-S = S(1:idx,1:idx); 
-
-
-ZZ = QZ * U; 
-DD = S; 
-YY = QY * V; 
-%ZZ is in Chebyshev-Dirichlet: 
-%multiply by M to get back into Chebyshev basis.
-ZZ = M*ZZ;
+% %share diag
+% ds = sign(diag(DD));
+% d = sqrt(abs(diag(DD)));
+% ZZ = ZZ*diag(d); 
+% YY = YY*diag(d.*ds);
+% % 
+% % 
+% % %compression step
+% [QZ, RZ] = qr( ZZ, 0); 
+% [QY, RY] = qr( YY, 0);
+% 
+% % XX * YY^T = (QX*RX) * (QY*RY)^T = QX*(RX*RY^T)*QY^T
+% inner_piece = RZ*RY'; 
+% [U, S, V ] = svd( inner_piece ); 
+% tol = eps; 
+% idx = find(diag(S)>tol*S(1,1), 1, 'last'); 
+% U = U(:,1:idx); 
+% V = V(:,1:idx); 
+% S = S(1:idx,1:idx); 
+% 
+% 
+% ZZ = QZ * U; 
+% DD = S; 
+% YY = QY * V; 
+% %ZZ is in Chebyshev-Dirichlet: 
+% %multiply by M to get back into Chebyshev basis.
+ ZZ = M*ZZ;
 
 
 
