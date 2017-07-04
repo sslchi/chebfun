@@ -195,6 +195,50 @@ classdef (InferiorClasses = {?chebfun, ?operatorBlock, ?functionalBlock}) chebma
             end
         end
         
+        function B = inv(A)
+        %INV   Compute the inverse of a matrix of chebfuns. (Experimental!)
+            
+            [m, n] = size(A);
+            if ( m ~= n )
+                error('CHEBFUN:chebmatrix:inv:notsquare', ...
+                    'Chebmatrix must be square.');
+            elseif ( ~all(cellfun(@(A) isa(A, 'chebfun'), A.blocks) ) )
+                error('CHEBFUN:chebmatrix:inv:notchebfun', ...
+                    'Chebmatrix must consist of chebfuns.');
+            end
+    
+            % We are piggybacking the constructor. Need to be careful with
+            % preferences.
+            pref = chebfunpref;
+            pref.refinementFunction = 'resampling';
+            pref.sampleTest = 0;
+            pref.extrapolate = 1;
+            pref.splitting = 0;
+            vals = [];
+            chebfun(@myinv, A.domain, pref); % This is ignored.
+            
+            % This is a function passed to the constructor:
+            function out = myinv(x) 
+                if ( (size(vals,1) > 2)  && (length(x) == 2) )
+                    out = rand(length(x),m*n);
+                    return
+                end
+                for j = 1:length(x)
+                    Ax = feval(A, x(j));
+                    tmp = inv(Ax);
+                    vals(j,:) = tmp(:);
+                    out(j,1) = norm(tmp(:), 2);
+                end
+            end
+            
+            % Construct the output chebmatrix from the matrix of values:
+            B = A;
+            for k = 1:numel(B.blocks)
+                B.blocks{k} = chebfun(vals(:,k), A.domain);
+            end
+            
+        end
+        
         function out = isFunVariable(A, k)
         %ISFUNVARIABLE   Which variables of the CHEBMATRIX are functions?
         %   A CHEBMATRIX can operate on other chebmatrices. Operator and
