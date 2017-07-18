@@ -100,7 +100,7 @@ classdef sphcapfun < separableApprox
         Y = harmonic(l,m,type);
         
         % Convert coeffs to a sphcapfun
-        f = coeffs2sphcapfun(CFS);        
+        f = coeffs2sphcapfun(CFS, DOM);        
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

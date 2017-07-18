@@ -35,6 +35,8 @@ function u = helmholtz( f, K, bc, m, n )
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
+domf = f.domain; 
+
 if( nargin < 5 )
     n = m;
 end
@@ -48,9 +50,12 @@ end
 % Construct operators
 D1 = ultraS.diffmat( m, 1 );              % 1st order ultraS diffmat
 D2 = ultraS.diffmat( m, 2 );              % 2nd order ultraS diffmat
-Mr = ultraS.multmat(m,[0;1],1);           % multiplication of r in ChebU 
-Mr2 = ultraS.multmat(m,[.5;0;.5],2);      % multiplication of r^2 in ultra2
-Mr2c = ultraS.multmat(m,[.5;0;.5],0);     % multiplication of r^2 in Cheb
+cfs = chebfun(@(theta) sin(theta).^2,[-domf(4) domf(4)]);
+Msin2 = ultraS.multmat(m, cfs, 2);  % multiplication of r in ChebU 
+cfs = chebfun(@(theta) sin(theta).*cos(theta),[-domf(4) domf(4)]);
+Mcossin = ultraS.multmat(m, cfs, 1);
+% Mr2 = ultraS.multmat(m,[.5;0;.5],2);      % multiplication of r^2 in ultra2
+% Mr2c = ultraS.multmat(m,[.5;0;.5],0);     % multiplication of r^2 in Cheb
 S1 = ultraS.convertmat( m, 0, 1 );        % convert chebT coeffs -> ultra2
 S12 = ultraS.convertmat( m, 1, 1);        % convert chebU coeffs -> ultra2
 
@@ -67,10 +72,11 @@ if ( isa(f, 'function_handle') )
     realValued = isreal(F); 
     F = (S1*chebtech2.vals2coeffs( F.' )).';        % Get (C^{(2)},trigvals) basis
     F = trigtech.vals2coeffs( F );
-elseif ( isa(f, 'diskfun') )
+elseif ( isa(f, 'sphcapfun') )
+    f = f.diskFunction; 
     realValued = 1; %for now assume diskfuns are real
     F = coeffs2(f, n, m);
-    F = S1*Mr2c*F; % r.^2*rhs in C^{2}
+    F = Msin2*S1*F; % r.^2*rhs in C^{2}
     F = F.';  
 elseif ( isa( f, 'double' ) ) % assume these are chebyshev coeffs
     %add check if real-valued; for now we will just assume not.
@@ -85,7 +91,7 @@ end
 d = (-n/2)*realValued+n +realValued; 
 
 % Set up LHS
-L = Mr2*D2 + S12*Mr*D1 + K^2*S1*Mr2c;
+L = Msin2*D2 + S12*Mcossin*D1 + K^2*Msin2*S1;
 L = L(1:end-2, :); % Eliminate last two rows to make room for BCs.
 
 % Boundary conditions 
@@ -131,7 +137,7 @@ if ( realValued == 1 )
 end
 
 % Solution returned as a diskfun:
-u = diskfun.coeffs2diskfun( CFS ); 
+u = sphcapfun.coeffs2sphcapfun( CFS, domf ); 
 
 end
 

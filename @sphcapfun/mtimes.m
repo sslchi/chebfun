@@ -1,4 +1,4 @@
-function varargout = mtimes(varargin)
+function h = mtimes(f, g)
 %*   Pointwise multiplication for DISKFUN objects.
 %   c*F or F*c multiplies a DISKFUN F by a scalar c.
 %
@@ -10,6 +10,15 @@ function varargout = mtimes(varargin)
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
-[varargout{1:nargout}] = mtimes@separableApprox(varargin{:});
+if ( isa(f, 'sphcapfun') && isa(g, 'sphcapfun') ) 
+    h = f; 
+    h.diskFunction = mtimes( f.diskFunction, g.diskFunction ); 
+elseif ( isa(f, 'sphcapfun') )
+    h = f; 
+    h.diskFunction = mtimes( f.diskFunction, g ); 
+elseif ( isa(g, 'sphcapfun') )
+    h = g; 
+    h.diskFunction = mtimes( f, g.diskFunction ); 
+end
 
 end

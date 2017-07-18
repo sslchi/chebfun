@@ -60,6 +60,10 @@ if ( strcmp(index(1).type, '()') )
                % 'Can only evaluate diskfuns at (X,Y) or (TH,R)');    
     end
     
+elseif ( strcmp(index(1).type, '.') && ( strcmp(index(1).subs, 'diskFunction') ) )
+    
+    varargout = {f.diskFunction}; 
+    
 elseif ( strcmp(index(1).type,'()') )
     if ( numel(idx)==4 )
         % This intentionally fails: 

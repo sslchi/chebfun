@@ -49,7 +49,7 @@ if( nargin < 4 )
 end
 
 % Call Helmholtz code with K = 0: 
-u = diskfun.helmholtz(f, 0, bc, m, n );
+u = sphcapfun.helmholtz(f, 0, bc, m, n );
 
 end
 

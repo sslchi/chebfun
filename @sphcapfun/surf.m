@@ -56,12 +56,15 @@ if ( isa(f,'sphcapfun') )
         dom = f.domain;
         l = linspace(dom(1), dom(2), minPlotNum);
         t = linspace(dom(3), dom(4), minPlotNum);
+%         t = linspace(0, 1, minPlotNum );
         C = fevalm(f, l, t); 
+%         t = linspace(dom(3), dom(4), minPlotNum);
         [ll, tt] = meshgrid(l, t);
         
         % Adjust tt if the domain is colatitude
         if (1) % iscolat( f )
             tt = pi/2 - tt;
+%             tt = .5 - tt;
         end
         [xx,yy,zz] = sph2cart(ll,tt,ones(size(ll)));
         
@@ -76,6 +79,7 @@ if ( isa(f,'sphcapfun') )
         xlim([-1 1])
         ylim([-1 1]) 
         zlim([-1 1])
+        xlabel('x'), ylabel('y'), zlabel('z')
         % Make the aspect ratio equal if the plot is not currently being
         % held.
         if ( ~ishold )

@@ -15,6 +15,8 @@ function varargout = coeffs2( f, m, n )
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
+f = f.diskFunction;
+
 % Calculate the CDR decomposition: 
 [C, D, R] = cdr( f ); 
 

@@ -34,7 +34,7 @@ end
 op = @(lam, th) op(lam, (th-dom(3))/(dom(4)-dom(3)));
 
 g = sphcapfun; 
-g.diskFunction = diskfun(op, [dom(1:2) 0 1], pref);
+g.diskFunction = diskfun(op, [dom(1:2) 0 1], pref, 'polar');
 g.domain = dom; 
 
 end
@@ -236,7 +236,8 @@ while ( numel(varargin) > 0 && isnumeric(varargin{1}) )
         m = d(1); 
         n = d(2);        
     elseif ( numel(d) == 1 )             % SPHCAPFUN(OP, K)
-        fixedRank = d;
+%         if ( abs(round(d) - d)fixedRank = d;
+        dom = [-pi pi 0 d*pi];  
     else
         error('CHEBFUN:SPHCAPFUN:CONSTRUCTOR:domain',... 
               ['A domain is rarely given for sphcapfun, ', ... 

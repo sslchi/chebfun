@@ -12,9 +12,15 @@ function varargout = fevalm(varargin)
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
-f = varargin{1}; 
+
+f = varargin{1};
+dom = f.domain; 
 g = f.diskFunction;
 varargin{1} = g; 
+
+R = varargin{3}; 
+varargin{3} = (R-dom(3))/(dom(4)-dom(3));
+
 [varargout{1:nargout}] = fevalm@separableApprox(varargin{:});
 
 end
