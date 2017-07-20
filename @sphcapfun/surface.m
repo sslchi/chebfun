@@ -1,6 +1,6 @@
 function varargout = surface(varargin)
-%SURFACE  Plot surface of a DISKFUN.
-%   SURFACE(F) plots the DISKFUN object F on the surface of the unit disk.
+%SURFACE  Plot surface of a SPHCAPFUN.
+%   SURFACE(F) plots the SPHCAPFUN object F on the surface of the unit disk.
 %
 %   SURFACE(X, Y, F, ...) calls separableApprox/SURF.  See this function for
 %   details.
@@ -11,7 +11,7 @@ function varargout = surface(varargin)
 %
 %   H = SURFACE(...) returns a handle to the figure.
 %
-% See also DISKFUN/PLOT and DISKFUN/SURF.
+% See also SPHCAPFUN/PLOT and SPHCAPFUN/SURF.
 
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.

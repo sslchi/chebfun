@@ -2,9 +2,9 @@ function [f,h] = extractPole(f)
 %EXTRACTPOLE  Removes from F the term accounting for non-zero pole/origin
 %
 % [G,H] = EXTRACTPOLE(F) if F is non-zero at the origin, then this function
-% returns DISKFUNs G and H, such that H is rank 1, G = F - H, and G is
+% returns SPHCAPFUNs G and H, such that H is rank 1, G = F - H, and G is
 % zero at the origin. If F is zero at the origin then G is an empty
-% DISKFUN.
+% SPHCAPFUN.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

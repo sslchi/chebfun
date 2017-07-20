@@ -1,8 +1,8 @@
 function varargout = mesh(varargin)
-%MESH   Mesh surface of a DISKFUN.
-%   MESH is not supported for DISKFUN objects, and so returns an error.
+%MESH   Mesh surface of a SPHCAPFUN.
+%   MESH is not supported for SPHCAPFUN objects, and so returns an error.
 %
-% See also DISKFUN/SURF.
+% See also SPHCAPFUN/SURF.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

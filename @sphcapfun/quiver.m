@@ -1,5 +1,5 @@
 function varargout = quiver( F, G, varargin )
-%QUIVER   Quiver plot of DISKFUN.
+%QUIVER   Quiver plot of SPHCAPFUN.
 %   QUIVER(F,G) plots the vector velocity field of (F,G). QUIVER automatically
 %   attempts to scale the arrows to fit within the grid. This returns the 
 %   same plot as QUIVER([F ; G]).
@@ -20,7 +20,7 @@ function varargout = quiver( F, G, varargin )
 %
 %   H = QUIVER(...) returns a quivergroup handle.
 %
-%   See also, DISKFUNV/QUIVER
+%   See also, SPHCAPFUNV/QUIVER
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
@@ -100,7 +100,7 @@ elseif ( nargin >= 3 )                 % quiver(x,y,F,...)
             
     else
         
-        error('DISKFUN:DISKFUNV:quiver:inputs', ...
+        error('SPHCAPFUN:SPHCAPFUNV:quiver:inputs', ...
                                   'Third and fourth arguments should be diskfuns.');
         
     end

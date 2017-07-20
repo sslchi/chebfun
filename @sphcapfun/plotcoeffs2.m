@@ -5,7 +5,7 @@ function varargout = plotcoeffs2(f)
 %
 %   H = PLOTCOEFFS2(F) returns a handle H to the figure.
 %
-% See also DISKFUN/PLOTCOEFFS and DISKFUN/COEFFS2.
+% See also SPHCAPFUN/PLOTCOEFFS and SPHCAPFUN/COEFFS2.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

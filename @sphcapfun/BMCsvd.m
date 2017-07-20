@@ -1,5 +1,5 @@
 function varargout = BMCsvd( f )
-% BMCSVD   Unweighted singular value decomposition of a DISKFUN 
+% BMCSVD   Unweighted singular value decomposition of a SPHCAPFUN 
 % on [-pi,pi]x[-1,1].
 % 
 %    S = BMCSVD( F )  returns the unweighted singular values of F
@@ -7,7 +7,7 @@ function varargout = BMCsvd( f )
 %    [U, S, V] = BMCSVD( F ) returns the unweighted singular value
 %                decomposition of F.
 %
-% Also see: DISKFUN/SVD
+% Also see: SPHCAPFUN/SVD
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

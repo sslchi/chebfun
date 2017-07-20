@@ -1,5 +1,5 @@
 function varargout = pivots(varargin)
-%PIVOTS   Pivot values of a DISKFUN.
+%PIVOTS   Pivot values of a SPHCAPFUN.
 % 
 %   PIVOTS(F) returns the pivot values taken during in the constructor by 
 %   the GE algorithm.

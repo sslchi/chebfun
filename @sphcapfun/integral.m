@@ -1,7 +1,7 @@
 function I = integral( f, varargin )
-%INTEGRAL   Complete definite integral of DISKFUN.
+%INTEGRAL   Complete definite integral of SPHCAPFUN.
 %
-%   I = INTEGRAL(F), returns the definite integral of a DISKFUN integrated
+%   I = INTEGRAL(F), returns the definite integral of a SPHCAPFUN integrated
 %   over its domain of definition.
 %
 %   I = INTEGRAL(F, g), returns the integral of F along the
@@ -9,7 +9,7 @@ function I = integral( f, varargin )
 %
 %   I = INTEGRAL(F, 'unitcircle') returns the integral of F along the
 %   unit circle.
-% See also DISKFUN/SUM2, DISKFUN/INTEGRAL2.
+% See also SPHCAPFUN/SUM2, SPHCAPFUN/INTEGRAL2.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
@@ -29,7 +29,7 @@ else
         if ( strcmpi(varargin{1},'unitcircle') )
             c = chebfun(@(t) exp(1i*t), [-pi, pi]);
         else
-            error('CHEBFUN:DISKFUN:INTEGRAL:unrecognizedType',...
+            error('CHEBFUN:SPHCAPFUN:INTEGRAL:unrecognizedType',...
                 'Unrecognized line integral type.  Did you mean "unitcircle"');
         end
     else

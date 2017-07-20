@@ -1,11 +1,11 @@
 function h = mtimes(f, g)
-%*   Pointwise multiplication for DISKFUN objects.
-%   c*F or F*c multiplies a DISKFUN F by a scalar c.
+%*   Pointwise multiplication for SPHCAPFUN objects.
+%   c*F or F*c multiplies a SPHCAPFUN F by a scalar c.
 %
 %   F*G computes the integral of F(s,t)G(l,s) over s, and this is the 
 %   continuous analogue of matrix-matrix multiplication.
 %
-% See also DISKFUN/TIMES.
+% See also SPHCAPFUN/TIMES.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

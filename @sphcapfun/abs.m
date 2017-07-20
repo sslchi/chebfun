@@ -1,6 +1,6 @@
 function varargout = abs(varargin)
-%ABS Absolute value of a DISKFUN.
-%   ABS(F) returns the absolute value of a DISKFUN. This function does not work
+%ABS Absolute value of a SPHCAPFUN.
+%   ABS(F) returns the absolute value of a SPHCAPFUN. This function does not work
 %   if the function passes through or becomes numerically close to zero.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.

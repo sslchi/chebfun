@@ -1,6 +1,6 @@
 function varargout = sqrt(varargin)
-%SQRT   Square root of a DISKFUN object.
-%   SQRT(F) returns the square root of a positive DISKFUN F.
+%SQRT   Square root of a SPHCAPFUN object.
+%   SQRT(F) returns the square root of a positive SPHCAPFUN F.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

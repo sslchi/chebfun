@@ -1,7 +1,7 @@
 function pass = sampleTest(f, sampleOP, tol, flag)
-%SAMPLETEST   Test an evaluation of input function handle against a DISKFUN.
+%SAMPLETEST   Test an evaluation of input function handle against a SPHCAPFUN.
 %   SAMPLETEST(F, SAMPLEOP, TOL) evaluates both the function SAMPLEOP and 
-%   its DISKFUN representation F at several points in its domain. The 
+%   its SPHCAPFUN representation F at several points in its domain. The 
 %   difference of these values is computed, and if this is sufficiently 
 %   small the test passes and returns TRUE. If the difference is large, it 
 %   returns FALSE.
@@ -46,7 +46,7 @@ end
 % for now, we need to restrict the OP to real values: 
 vOp = real(vOp); 
 
-% Evaluate the DISKFUN:
+% Evaluate the SPHCAPFUN:
 vFun = feval(f, xeval, yeval, 'polar');
 
 % If the TECHS evaluation differs from the op evaluation, SAMPLETEST failed:

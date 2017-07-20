@@ -1,5 +1,5 @@
 function varargout = size(varargin)
-% SIZE   Size of a DISKFUN object.
+% SIZE   Size of a SPHCAPFUN object.
 %   D = SIZE(F) returns the two-element row vector D = [inf, inf].
 %
 %   [M, N] = SIZE(F) returns M = inf and N = inf.

@@ -1,5 +1,5 @@
 function varargout = sample(f, varargin)
-%SAMPLE   Samples a DISKFUN object on a tensor product grid.
+%SAMPLE   Samples a SPHCAPFUN object on a tensor product grid.
 %   X = SAMPLE(F) returns the matrix of values of F(theta, r) on a 
 %   Fourier-Chebyshev tensor product grid. (theta, r) are polar coordinates, 
 %   with -pi <= theta <= pi and 0 <= r <= 1. 
@@ -24,13 +24,13 @@ if ( nargin == 1 )
     [m, n] = length(f);
     
 elseif ( nargin == 2 ) 
-    error('CHEBFUN:DISKFUN:sample:inputs', 'Dimension not specified.'); 
+    error('CHEBFUN:SPHCAPFUN:sample:inputs', 'Dimension not specified.'); 
     
 else
     m = varargin{ 1 }; 
     n = varargin{ 2 }; 
     if ( (m <= 0) || (n <= 0) )
-        error('CHEBFUN:DISKFUN:sample:inputs', ['Number of sample ' ...
+        error('CHEBFUN:SPHCAPFUN:sample:inputs', ['Number of sample ' ...
              'points must be positive.']);
     end
 end

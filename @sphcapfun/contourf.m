@@ -1,5 +1,5 @@
 function varargout = contourf( f, varargin )
-%CONTOURF   Filled contour plot of a DISKFUN.
+%CONTOURF   Filled contour plot of a SPHCAPFUN.
 %   CONTOURF(...) is the same as CONTOUR(...) except that the areas between
 %   contours are filled with colors according to the Z-value for each level.
 %   Contour regions with data values at or above a given level are filled with
@@ -43,7 +43,7 @@ while ( ~isempty( varargin ) )
     elseif ( strcmpi(varargin{1}, 'pivots') ) % If given numpts then use them.
         doPivotPlot = 1;
         if ( length( varargin ) < 2 ) 
-            error('CHEBFUN:DISKFUN:contourf:pivotStyle', ...
+            error('CHEBFUN:SPHCAPFUN:contourf:pivotStyle', ...
                 'Pivot style undefined.')
         end
         argin{j} = varargin{2};
@@ -57,7 +57,7 @@ end
 
 % Did the user want a plot of the pivot locations?
 if ( doPivotPlot )    % Do pivot plot. 
-    error('CHEBFUN:DISKFUN:contourf:pivotstyle', ...
+    error('CHEBFUN:SPHCAPFUN:contourf:pivotstyle', ...
             'Pivots cannot be plotted with ''contourf''. Use ''contour'' instead.');
 end
 
@@ -74,7 +74,7 @@ if ( isa(f, 'double') )
         vals = feval(f, xx, yy, 'polar');
         
     else
-        error('CHEBFUN:DISKFUN:contourf:badInputs', ...
+        error('CHEBFUN:SPHCAPFUN:contourf:badInputs', ...
             'Unrecognised input arguments.');
     end
     
@@ -92,8 +92,8 @@ elseif ( isa(f, 'diskfun') )
         
         % Check CONTOUR objects are on the same domain.
         if ( ~domainCheck(xx, yy) )
-            error('CHEBFUN:DISKFUN:contourf:domains', ...
-                'Domains of DISKFUN objects are not consistent.');
+            error('CHEBFUN:SPHCAPFUN:contourf:domains', ...
+                'Domains of SPHCAPFUN objects are not consistent.');
         end
         
         % Evaluate f on equally spaced grid:
@@ -130,11 +130,11 @@ elseif ( isa(f, 'diskfun') )
 %         vals = sample(f, minplotnum-1, minplotnum);
 %         vals = [vals vals(:,1)];
     else
-        error('CHEBFUN:DISKFUN:contourf:inputs1', ...
+        error('CHEBFUN:SPHCAPFUN:contourf:inputs1', ...
             'Unrecognised input arguments.');
     end
 else
-    error('CHEBFUN:DISKFUN:contourf:inputs2', ...
+    error('CHEBFUN:SPHCAPFUN:contourf:inputs2', ...
         'Unrecognised input arguments.');
 end
 

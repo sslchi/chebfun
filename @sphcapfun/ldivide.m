@@ -1,11 +1,11 @@
 function varargout = ldivide(varargin)
-%.\   Pointwise DISKFUN left array divide.
-%   F.\G if G is a DISKFUN and F is a double this returns (1/F)*G
+%.\   Pointwise SPHCAPFUN left array divide.
+%   F.\G if G is a SPHCAPFUN and F is a double this returns (1/F)*G
 %
-%   F.\G if G is a double and F is a DISKFUN this returns G\F, but this
+%   F.\G if G is a double and F is a SPHCAPFUN this returns G\F, but this
 %   does not work if F becomes numerically close to zero.
 %
-%   F.\G we do not allow F and G to both be DISKFUN objects.
+%   F.\G we do not allow F and G to both be SPHCAPFUN objects.
 % 
 %   F.\G is the same as the command ldivide(F,G)
 

@@ -6,7 +6,7 @@ function f = circshift(h, alpha)
 %   rotates H in the counterclockwise direction, negative ALPHA rotates H
 %   in the clockwise direction.
 %
-%   See also DISKFUN/ROTATE.
+%   See also SPHCAPFUN/ROTATE.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

@@ -78,7 +78,7 @@ elseif ( strcmpi(type, 'neumann') )
         end
     end   
 else    
-    error('CHEBFUN:DISKFUN:HARMONIC:TYPE', ['Unrecognized harmonic type.'...
+    error('CHEBFUN:SPHCAPFUN:HARMONIC:TYPE', ['Unrecognized harmonic type.'...
         ' Only dirichlet and neumann are available types.'] )
 end
 
@@ -136,7 +136,7 @@ end
 %         Z = sqrt(2)/ (sqrt( (1-L^2/Jzero^2)*(1+k)*pi)*abs(besselj(L, Jzero)))*Z;
 %     end   
 % else    
-%     error('DISKFUN:HARMONIC:TYPE', 'Unrecognized Bessel type.')
+%     error('SPHCAPFUN:HARMONIC:TYPE', 'Unrecognized Bessel type.')
 % end
 % 
 % end

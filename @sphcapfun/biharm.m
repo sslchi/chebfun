@@ -1,11 +1,11 @@
 function biharmF = biharm(f)
-%BIHARM   Biharmonic operator of a DISKFUN.
-%   B = BIHARM(F) returns a DISKFUN representing the biharmonic operator 
+%BIHARM   Biharmonic operator of a SPHCAPFUN.
+%   B = BIHARM(F) returns a SPHCAPFUN representing the biharmonic operator 
 %   applied to F.
 %
 %   This is shorthand for BIHARMONIC(F).
 %
-% See also DISKFUN/BIHARMONIC.
+% See also SPHCAPFUN/BIHARMONIC.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

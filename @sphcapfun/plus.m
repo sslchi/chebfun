@@ -1,6 +1,6 @@
 function h = plus(f, g)
-%+   Plus for DISKFUN objects.
-% F + G adds F and G. F and G can be scalars or DISKFUN objects.
+%+   Plus for SPHCAPFUN objects.
+% F + G adds F and G. F and G can be scalars or SPHCAPFUN objects.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

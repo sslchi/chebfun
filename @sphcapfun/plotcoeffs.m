@@ -9,7 +9,7 @@ function varargout = plotcoeffs(varargin)
 %   linecolor, etc. If S contains a string 'LOGLOG', the coefficients will be
 %   displayed on a log-log scale.
 %
-% See also DISKFUN/PLOTCOEFFS2 and DISKFUN/COEFFS2.
+% See also SPHCAPFUN/PLOTCOEFFS2 and SPHCAPFUN/COEFFS2.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

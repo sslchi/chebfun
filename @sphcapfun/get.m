@@ -1,7 +1,7 @@
 function val = get( f, propName )
-%GET       GET method for DISKFUN class.
+%GET       GET method for SPHCAPFUN class.
 %   P = GET(F, PROP) returns the property P specified in the string PROP from
-%   the DISKFUN object F. Valid entries for the string PROP are:
+%   the SPHCAPFUN object F. Valid entries for the string PROP are:
 %    'domain'
 %    'cols'
 %    'rows' 
@@ -15,7 +15,7 @@ function val = get( f, propName )
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
-% Loop through an array of DISKFUN objects.
+% Loop through an array of SPHCAPFUN objects.
 if ( numel(f) > 1 )
     val = cell(numel(f));
     for k = 1:numel(f)
@@ -43,6 +43,6 @@ switch ( propName )
     case 'nonZeroPoles'
         val = f.nonZeroPoles;
     otherwise
-        error('CHEBFUN:DISKFUN:get:propName', ...
-            [propName,' is not a valid DISKFUN property.'])
+        error('CHEBFUN:SPHCAPFUN:get:propName', ...
+            [propName,' is not a valid SPHCAPFUN property.'])
 end

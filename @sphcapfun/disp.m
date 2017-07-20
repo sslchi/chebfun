@@ -1,14 +1,14 @@
 function disp(F)
-%DISP   Display a DISKFUN to the command line.
+%DISP   Display a SPHCAPFUN to the command line.
 % 
-% See also DISKFUN/DISPLAY.
+% See also SPHCAPFUN/DISPLAY.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 loose = strcmp( get(0, 'FormatSpacing'), 'loose' );
 
-% Get display style and remove trivial empty DISKFUN case. 
+% Get display style and remove trivial empty SPHCAPFUN case. 
 if ( isempty(F) )
     fprintf('    empty sphcapfun\n')
     if ( loose )

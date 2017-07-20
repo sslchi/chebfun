@@ -1,7 +1,7 @@
 function varargout = svd(f)
-%SVD   Singular value decomposition of a DISKFUN.
+%SVD   Singular value decomposition of a SPHCAPFUN.
 %   SVD(F) returns the singular values of F. The number of singular values
-%   returned is equal to the rank of the DISKFUN.
+%   returned is equal to the rank of the SPHCAPFUN.
 %
 %   S = SVD(F) returns S, a vector of singular values in non-increasing
 %   order.
@@ -12,7 +12,7 @@ function varargout = svd(f)
 %   measure on the disk) and S is a diagonal matrix with the singular 
 %   values on the diagonal.
 %
-%   The length and rank of a DISKFUN are slightly different quantities.
+%   The length and rank of a SPHCAPFUN are slightly different quantities.
 %   LENGTH(F) is the number of pivots used by the constructor, and
 %   RANK(F) is the number of significant singular values of F. The relation
 %   RANK(F) <= LENGTH(F) should always hold.
@@ -35,7 +35,7 @@ C = restrict(C, [0, 1]);
 [QwR, RwR] = qr(R);
 
 % Use the QR factorizations of the columns and rows to make up the SVD of
-% the DISKFUN object.  Since
+% the SPHCAPFUN object.  Since
 %
 %        C * D * R' = QwC * ( RwC * D * RwR' ) * QwR'
 %

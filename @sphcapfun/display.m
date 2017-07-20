@@ -1,13 +1,13 @@
 function display(X)
-%DISPLAY   Display information about a DISKFUN.
-%   DISPLAY(F) outputs important information about the DISKFUN F to the command
+%DISPLAY   Display information about a SPHCAPFUN.
+%   DISPLAY(F) outputs important information about the SPHCAPFUN F to the command
 %   window, including its domain of definition, length (number of pivots used to
 %   represent it), and a summary of its structure.
 %
 %   It is called automatically when the semicolon is not used at the end of a
-%   statement that results in a DISKFUN.
+%   statement that results in a SPHCAPFUN.
 %
-% See also DISKFUN/DISP.
+% See also SPHCAPFUN/DISP.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

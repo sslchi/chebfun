@@ -1,13 +1,13 @@
 function varargout = rdivide(varargin)
-%./   Pointwise right divide of DISKFUN objects.
-%   F./G returns (1/G)*F if F is a DISKFUN and G is a double.
+%./   Pointwise right divide of SPHCAPFUN objects.
+%   F./G returns (1/G)*F if F is a SPHCAPFUN and G is a double.
 %
-%   F./G returns F/G if F is a double and G is a DISKFUN. This does not 
+%   F./G returns F/G if F is a double and G is a SPHCAPFUN. This does not 
 %   work if G becomes numerically close to zero.
 % 
 %   F./G is the same as the command rdivide(F,G)
 %
-% See also DISKFUN/LDIVIDE.
+% See also SPHCAPFUN/LDIVIDE.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

@@ -1,9 +1,9 @@
 function varargout = prod(varargin)
-%PROD   Product integral of a DISKFUN.
+%PROD   Product integral of a SPHCAPFUN.
 %   PROD(F) returns exp( sum(log(F)) ).
 %   PROD(F, DIM) returns the chebfun exp( sum(log(F), DIM) )
 % 
-% See also DISKFUN/CUMPROD.
+% See also SPHCAPFUN/CUMPROD.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

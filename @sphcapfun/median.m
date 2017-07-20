@@ -1,6 +1,6 @@
 function varargout = median(varargin)
-%MEDIAN   Median value of a DISKFUN.
-%   G = MEDIAN(F) returns a CHEBFUN G representing the median of the DISKFUN
+%MEDIAN   Median value of a SPHCAPFUN.
+%   G = MEDIAN(F) returns a CHEBFUN G representing the median of the SPHCAPFUN
 %   along the radial direction, i.e., G = @(t) median( F ( t, : ) ), where
 %   F(theta, r) expresses F in polar coordinates and -pi <= theta <= pi, 
 %   0 <= r <= 1. 

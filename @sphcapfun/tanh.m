@@ -1,8 +1,8 @@
 function varargout = tanh(varargin)
-%TANH   Hyperbolic tangent of a DISKFUN. 
-%   TANH(F) returns the hyperbolic tangent of a DISKFUN object F.
+%TANH   Hyperbolic tangent of a SPHCAPFUN. 
+%   TANH(F) returns the hyperbolic tangent of a SPHCAPFUN object F.
 %
-% See also DISKFUN/TAN.
+% See also SPHCAPFUN/TAN.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

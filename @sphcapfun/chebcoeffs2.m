@@ -9,7 +9,7 @@ function varargout = chebcoeffs2(varargin)
 %   low rank form, i.e., X = A * D * B'.
 %
 %
-% See also DISKFUN/PLOTCOEFFS2, DISKFUN/COEFFS2.
+% See also SPHCAPFUN/PLOTCOEFFS2, SPHCAPFUN/COEFFS2.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

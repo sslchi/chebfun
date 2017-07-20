@@ -1,7 +1,7 @@
 function varargout = integral2(varargin)
-%INTEGRAL2  Double integral of a DISKFUN over its domain.
+%INTEGRAL2  Double integral of a SPHCAPFUN over its domain.
 %   I = INTEGRAL2(F) returns a value representing the double integral of a
-%   DISKFUN.
+%   SPHCAPFUN.
 %
 %
 %   I = INTEGRAL2(F, [a b c d]) integrates F in polar coordinates
@@ -9,7 +9,7 @@ function varargout = integral2(varargin)
 %   in the interval [-pi  pi], and  c and d are radial values in the 
 %   interval [0 1].
 %
-% See also DISKFUN/INTEGRAL, DISKFUN/SUM2, DISKFUN/QUAD2D.
+% See also SPHCAPFUN/INTEGRAL, SPHCAPFUN/SUM2, SPHCAPFUN/QUAD2D.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

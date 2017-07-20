@@ -1,9 +1,9 @@
 function G = gradient( f ) 
-%GRADIENT   Numerical gradient of a DISKFUN. 
+%GRADIENT   Numerical gradient of a SPHCAPFUN. 
 %   G = GRADIENT(F) returns the numerical gradient of the
-%   DISKFUN F as a DISKFUNV G.
+%   SPHCAPFUN F as a SPHCAPFUNV G.
 %
-% See also DISKFUNV/DIV, DISKFUNV/CURL, DISKFUN/CURL, DISKFUNV/VORTICITY
+% See also SPHCAPFUNV/DIV, SPHCAPFUNV/CURL, SPHCAPFUN/CURL, SPHCAPFUNV/VORTICITY
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

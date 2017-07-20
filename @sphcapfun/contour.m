@@ -1,5 +1,5 @@
 function varargout = contour( f, varargin )
-%CONTOUR   contour plot of a DISKFUN.
+%CONTOUR   contour plot of a SPHCAPFUN.
 %   CONTOUR(F) is a contour plot of F treating the values of F as heights
 %   above the disk. A contour plot shows the level curves of F for some
 %   values V. The values V are chosen automatically.
@@ -45,7 +45,7 @@ while ( ~isempty( varargin ) )
     elseif ( strcmpi(varargin{1}, 'pivots') ) % If the pivots are to be plotted
         doPivotPlot = 1;
         if ( length( varargin ) < 2 ) 
-            error('CHEBFUN:DISKFUN:contour:pivotStyle', ...
+            error('CHEBFUN:SPHCAPFUN:contour:pivotStyle', ...
                 'Pivot style undefined.')
         end
         argin{j} = varargin{2};
@@ -86,7 +86,7 @@ if ( isa(f, 'double') )
         vals = feval(f, xx, yy, 'polar');
         
     else
-        error('CHEBFUN:DISKFUN:contour:badInputs', ...
+        error('CHEBFUN:SPHCAPFUN:contour:badInputs', ...
             'Unrecognised input arguments.');
     end
     
@@ -104,8 +104,8 @@ elseif ( isa(f, 'diskfun') )
         
         % Check CONTOUR objects are on the same domain.
         if ( ~domainCheck(xx, yy) )
-            error('CHEBFUN:DISKFUN:contour:domains', ...
-                'Domains of DISKFUN objects are not consistent.');
+            error('CHEBFUN:SPHCAPFUN:contour:domains', ...
+                'Domains of SPHCAPFUN objects are not consistent.');
         end
         
         % Evaluate f on equally spaced grid:
@@ -142,11 +142,11 @@ elseif ( isa(f, 'diskfun') )
 %         vals = sample(f, minplotnum-1, minplotnum);
 %         vals = [vals vals(:,1)];
     else
-        error('CHEBFUN:DISKFUN:contour:inputs1', ...
+        error('CHEBFUN:SPHCAPFUN:contour:inputs1', ...
             'Unrecognised input arguments.');
     end
 else
-    error('CHEBFUN:DISKFUN:contour:inputs2', ...
+    error('CHEBFUN:SPHCAPFUN:contour:inputs2', ...
         'Unrecognised input arguments.');
 end
 

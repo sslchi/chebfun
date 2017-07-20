@@ -1,5 +1,5 @@
 function varargout = std(varargin)
-%STD   Standard deviation of a DISKFUN along one variable.
+%STD   Standard deviation of a SPHCAPFUN along one variable.
 %   G = STD(F) returns the standard deviation of F in the radial variable
 %   (default).If F is defined on the rectangle [-pi,pi] x [0,1] then
 %
@@ -14,7 +14,7 @@ function varargout = std(varargin)
 %   DIM = 2. The FLAG is ignored and kept in this function so the syntax
 %   agrees with the Matlab STD command.
 %
-% See also CHEBFUN/STD, DISKFUN/MEAN.
+% See also CHEBFUN/STD, SPHCAPFUN/MEAN.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

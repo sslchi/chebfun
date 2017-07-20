@@ -1,5 +1,5 @@
 function varargout = waterfall(varargin)
-%WATERFALL   Waterfall plot of a DISKFUN.
+%WATERFALL   Waterfall plot of a SPHCAPFUN.
 %   WATERFALL(F) displays the waterfall plot of F.
 %
 %   WATERFALL(F, S) displays the column and row chebfuns of F that are used
@@ -17,7 +17,7 @@ function varargout = waterfall(varargin)
 %
 %   H = WATERFALL(...) returns a handle to a waterfall plot object.
 %
-% See also DISKFUN/PLOT.
+% See also SPHCAPFUN/PLOT.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

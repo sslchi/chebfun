@@ -1,10 +1,10 @@
 function f = flipdim(g,dim)
-%FLIPDIM   Flip/reverse a DISKFUN in a chosen direction.
-%   G = FLIPDIM(F, DIM) returns a DISKFUN G but
+%FLIPDIM   Flip/reverse a SPHCAPFUN in a chosen direction.
+%   G = FLIPDIM(F, DIM) returns a SPHCAPFUN G but
 %   reversed in a direction:  If DIM = 1 and G(x,y) = F(-x, y).
 %   If DIM = 2  then G(x,y) = F(x, -y).  
 % 
-% See also DISKFUN/FLIPLR, DISKFUN/FLIPUD, DISKFUN/ROTATE.
+% See also SPHCAPFUN/FLIPLR, SPHCAPFUN/FLIPUD, SPHCAPFUN/ROTATE.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
@@ -20,7 +20,7 @@ if ( dim == 1 )
 elseif ( dim == 2 )
     f = fliplr( g ); 
 else
-    error('CHEBFUN:DISKFUN:flipdim:badDim2', 'Dimension not recognised.');
+    error('CHEBFUN:SPHCAPFUN:flipdim:badDim2', 'Dimension not recognised.');
 end
 
 end

@@ -1,7 +1,7 @@
 function [normF, normloc] = norm(f, p)
-%NORM   Norm of a DISKFUN.
+%NORM   Norm of a SPHCAPFUN.
 % 
-% For DISKFUN objects:
+% For SPHCAPFUN objects:
 %    NORM(F) = sqrt(integral of abs(F)^2).
 %    NORM(F, 2) = largest singular value of F.
 %    NORM(F,'fro') is the same as NORM(F).
@@ -26,8 +26,8 @@ if ( isempty( f ) )
 else
     switch ( p )  % Different cases on different norms.
         case 1
-            error('CHEBFUN:DISKFUN:norm:norm', ...
-                'DISKFUN does not support L1-norm.');
+            error('CHEBFUN:SPHCAPFUN:norm:norm', ...
+                'SPHCAPFUN does not support L1-norm.');
             
         case {2, 'fro'}  % Definite integral of f.^2.
             s = svd(f); 
@@ -39,8 +39,8 @@ else
              normloc = X(idx, :);
             
         case {-inf, '-inf', 'min'}
-            error('CHEBFUN:DISKFUN:norm:norm', ...
-                'DISKFUN does not support this norm.');
+            error('CHEBFUN:SPHCAPFUN:norm:norm', ...
+                'SPHCAPFUN does not support this norm.');
             
 %         case {'op', 'operator'}
 %             [C, D, R] = cdr( f ); 
@@ -60,15 +60,15 @@ else
                     if ( ~mod(p,2) )
                         normF = ( sum2(f) ).^(1/p);
                     else
-                        error('CHEBFUN:DISKFUN:norm:norm', ...
+                        error('CHEBFUN:SPHCAPFUN:norm:norm', ...
                             'p-norm must have p even for now.');
                     end
                 else
-                    error('CHEBFUN:DISKFUN:norm:norm', ...
-                        'DISKFUN does not support this norm.');
+                    error('CHEBFUN:SPHCAPFUN:norm:norm', ...
+                        'SPHCAPFUN does not support this norm.');
                 end
             else
-                error('CHEBFUN:DISKFUN:norm:unknown', 'Unknown norm.');
+                error('CHEBFUN:SPHCAPFUN:norm:unknown', 'Unknown norm.');
             end
             
     end

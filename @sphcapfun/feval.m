@@ -1,5 +1,5 @@
 function y = feval(varargin)
-%FEVAL   Evaluate a DISKFUN at one or more points.
+%FEVAL   Evaluate a SPHCAPFUN at one or more points.
 %   Y = FEVAL( F, X, Y) evaluates a diskfun F at a point (X,Y) in Cartesian
 %   cooridnates, where X and Y are doubles.
 %

@@ -1,5 +1,5 @@
 function r = roots(varargin)
-%ROOTS   Zero contours of a DISKFUN.
+%ROOTS   Zero contours of a SPHCAPFUN.
 %   R = ROOTS(F) returns the zero contours of F as a quasimatrix of 
 %   array-valued chebfuns. Each column of R is one zero contour. This 
 %   command only finds contours when there is a change of sign and it may 
@@ -14,7 +14,7 @@ function r = roots(varargin)
 %   In the special case when F is of length 1 then the zero contours are found
 %   to full precision.
 %  
-% See also DISKFUN2V/ROOTS, CHEBFUN2/ROOTS, CHEBFUN2V/ROOTS
+% See also SPHCAPFUN2V/ROOTS, CHEBFUN2/ROOTS, CHEBFUN2V/ROOTS
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

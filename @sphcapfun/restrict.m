@@ -7,7 +7,7 @@ function f = restrict(f, dom)
 % Copyright 2017 by The University of Oxford and The Chebfun2 Developers.
 % See http://www.chebfun.org/ for Chebfun2 information.
 
-error('CHEBFUN:DISKFUN:RESTRICT:fail',...
+error('CHEBFUN:SPHCAPFUN:RESTRICT:fail',...
        'The domain of a diskfun cannot be restricted.')
 
 end

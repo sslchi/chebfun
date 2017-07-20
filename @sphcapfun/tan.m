@@ -1,7 +1,7 @@
 function varargout = tan(varargin)
-%TAN   Tangent of a DISKFUN.
+%TAN   Tangent of a SPHCAPFUN.
 %
-% See also DISKFUN/SIN, DISKFUN/COS, DISKFUN/TANH
+% See also SPHCAPFUN/SIN, SPHCAPFUN/COS, SPHCAPFUN/TANH
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

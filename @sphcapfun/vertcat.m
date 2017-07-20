@@ -1,13 +1,13 @@
 function F = vertcat(varargin)
-%VERTCAT   Vertical concatenation of DISKFUN objects.
-%   K = VERTCAT(F, G, H) is the vertical concatenation of DISKFUN objects F, 
-%   G, and H. The output K is a DISKFUNV object.
+%VERTCAT   Vertical concatenation of SPHCAPFUN objects.
+%   K = VERTCAT(F, G, H) is the vertical concatenation of SPHCAPFUN objects F, 
+%   G, and H. The output K is a SPHCAPFUNV object.
 % 
 %   [F ; G] is equivalent to VERTCAT(F, G).
 %
-%   VERTCAT(F) returns the DISKFUN F. 
+%   VERTCAT(F) returns the SPHCAPFUN F. 
 % 
-% See also DISKFUNV.
+% See also SPHCAPFUNV.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
@@ -22,13 +22,13 @@ elseif ( nargin == 2 )
         F = diskfunv(varargin{:});
         
     else
-        error('DISKFUN:vertcat:tooManyComponents', ...
-            'Only DISKFUN objects are valid to concatenate.');
+        error('SPHCAPFUN:vertcat:tooManyComponents', ...
+            'Only SPHCAPFUN objects are valid to concatenate.');
     end
     
 else
-    error('DISKFUN:vertcat:tooManyInputs', ...
-        'Can only vertically concatenate two DISKFUN objects.');
+    error('SPHCAPFUN:vertcat:tooManyInputs', ...
+        'Can only vertically concatenate two SPHCAPFUN objects.');
 end
     
 end

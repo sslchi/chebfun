@@ -1,11 +1,11 @@
 function varargout = chol(varargin)
-%CHOL   Cholesky factorization of a DISKFUN. 
+%CHOL   Cholesky factorization of a SPHCAPFUN. 
 %
-%   R = CHOL( F ), if F is a nonnegative definite DISKFUN then this returns
+%   R = CHOL( F ), if F is a nonnegative definite SPHCAPFUN then this returns
 %   an upper triangular quasimatrix so that R'*R is a decomposition of F.
 %   If F is not nonnegative definite then an error is thrown.
 %
-%   L = CHOL(F, 'lower'), if F is a nonnegative definite DISKFUN then this
+%   L = CHOL(F, 'lower'), if F is a nonnegative definite SPHCAPFUN then this
 %   produces a lower triangular quasimatrix so that L*L' is a decomposition
 %   of F. If F is not nonnegative definite then an error is thrown.
 % 
@@ -13,7 +13,7 @@ function varargout = chol(varargin)
 %   F is nonnegative definite then p is 0 and R is the same as above. If F
 %   is symmetric but negative definite or semidefinite then p is a positive
 %   integer such that R has p columns and R'*R is a rank p nonnegative
-%   definite DISKFUN that approximates F. This is particular useful when F
+%   definite SPHCAPFUN that approximates F. This is particular useful when F
 %   is nonnegative definite, but rounding error have perturbed it to be
 %   semidefinite.
 %
@@ -24,7 +24,7 @@ function varargout = chol(varargin)
 %   A. Townsend and L. N. Trefethen, Continuous analogues of matrix
 %   factorizations, Proc. Royal Soc. A., 2015. 
 %
-% See also DISKFUN/LU, and DISKFUN/QR. 
+% See also SPHCAPFUN/LU, and SPHCAPFUN/QR. 
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

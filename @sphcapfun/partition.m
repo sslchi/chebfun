@@ -1,5 +1,5 @@
 function [fp, fm] = partition(f)
-% PARTITION   Partition a DISKFUN into its even/periodic odd/anti-periodic
+% PARTITION   Partition a SPHCAPFUN into its even/periodic odd/anti-periodic
 % parts.
 %
 % [FP, FM] = partition(F) partitions F into two diskfuns FP & FM with the
@@ -9,14 +9,14 @@ function [fp, fm] = partition(f)
 %   FM has a CDR decomposition such that C is odd and R is pi
 %   anti-periodic.
 %
-% See also DISKFUN/COMBINE.
+% See also SPHCAPFUN/COMBINE.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 
 if ( ~isa(f,'diskfun') )
-    error('DISKFUN:partition:unknown',['Undefined function ''partition'' for ' ...
+    error('SPHCAPFUN:partition:unknown',['Undefined function ''partition'' for ' ...
         'input argument of type %s.'], class(f));
 end
 

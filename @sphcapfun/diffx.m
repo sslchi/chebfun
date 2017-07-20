@@ -1,16 +1,16 @@
 function g = diffx(f, n)
-%DIFFX   Differentiate a DISKFUN with respect to x.
+%DIFFX   Differentiate a SPHCAPFUN with respect to x.
 %
-%   G = DIFFX(F) returns a DISKFUN representing the derivative of F in its
+%   G = DIFFX(F) returns a SPHCAPFUN representing the derivative of F in its
 %   first argument. This is the same as DIFF(F,1,1).
 %
-%   G = DIFFX(F,N) returns a DISKFUN representing the Nth derivative of F in
+%   G = DIFFX(F,N) returns a SPHCAPFUN representing the Nth derivative of F in
 %   its first argument. This is the same as DIFF(F,1, N).
 %
 %   This command is for convenience as the syntax for DIFF, inherited from the
 %   DIFF command for matrices, can be confusing.
 % 
-% See also DISKFUN/DIFFY, DISKFUN/DIFF. 
+% See also SPHCAPFUN/DIFFY, SPHCAPFUN/DIFF. 
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

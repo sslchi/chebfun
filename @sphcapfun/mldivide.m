@@ -1,6 +1,6 @@
 function varargout = mldivide(varargin)
-%\   Left divide for DISKFUN objects.
-%   MLDIVIDE(F, G) computes left dividison for DISKFUN objects F and G.
+%\   Left divide for SPHCAPFUN objects.
+%   MLDIVIDE(F, G) computes left dividison for SPHCAPFUN objects F and G.
 %   Only allowed to divide by scalars.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.

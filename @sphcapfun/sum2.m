@@ -1,11 +1,12 @@
 function v = sum2( f ) 
-%SUM2   Double integral of a DISKFUN over its domain.
-%   I = SUM2(F) returns the double definite integral of a DISKFUN.
+%SUM2   Double integral of a SPHCAPFUN over its domain.
+%   I = SUM2(F) returns the double definite integral of a SPHCAPFUN.
 
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
+f = f.diskFunction; 
 [cols,d,rows] = cdr(f);
 
 % Split f into its plus/minus terms.  The minus terms have integral zero 
@@ -26,7 +27,7 @@ d = diag(d(f.idxPlus,f.idxPlus)).';
 intRows = sum(rows);
 
 % Create a chebfun of the measure. 
-measure = chebfun(@(r) r,[-1,1]);
+measure = chebfun(@(r) sin(r),[-1,1]);
 
 % Multiply the columns by the measure
 cols = cols.*(measure*ones(1,size(cols,2)));

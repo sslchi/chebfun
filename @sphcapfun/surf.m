@@ -1,6 +1,6 @@
 function varargout = surf(f, varargin)
-%SURF   Surface plot of a DISKFUN.
-%   SURF(F) plots the DISKFUN object F on the surface of the unit disk.
+%SURF   Surface plot of a SPHCAPFUN.
+%   SURF(F) plots the SPHCAPFUN object F on the surface of the unit disk.
 %
 %   SURF(X, Y, F, ...) calls separableApprox/SURF.  See this function for
 %   details.
@@ -11,7 +11,7 @@ function varargout = surf(f, varargin)
 %
 %   H = SURF(...) returns a handle to the figure.
 %
-% See also DISKFUN/PLOT and SEPARABLEAPPROX/SURF.
+% See also SPHCAPFUN/PLOT and SEPARABLEAPPROX/SURF.
 
 % Empty check:
 if ( isempty(f) )

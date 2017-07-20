@@ -1,9 +1,9 @@
 function I = quad2d(f,a,b,c,d)
-%QUAD2D  Complete definite integral of DISKFUN. 
-%   I = QUAD2D( F ), returns the definite integral of a DISKFUN integrated
+%QUAD2D  Complete definite integral of SPHCAPFUN. 
+%   I = QUAD2D( F ), returns the definite integral of a SPHCAPFUN integrated
 %   over its domain of definition. It is the same as sum2(F)
 % 
-%   I = QUAD2D(F, a, b, c, d), returns the definite integral of a DISKFUN.
+%   I = QUAD2D(F, a, b, c, d), returns the definite integral of a SPHCAPFUN.
 %   Integrated over the polar domain [a b] x [c d], where a and b are
 %   angles between -pi and pi, and r is a radial parameter between 0 and 1.
 % 
@@ -27,8 +27,8 @@ if nargin == 1
     I = sum2(f);
 else
 if ( ( a < dom(1) ) || ( b > dom(2) ) || ( c < dom(3) ) || ( d > dom(4) ) )
-    error('CHEBFUN:DISKFUN:quad2d:domain', ...
-        'Can only integrate within the DISKFUN''s domain');
+    error('CHEBFUN:SPHCAPFUN:quad2d:domain', ...
+        'Can only integrate within the SPHCAPFUN''s domain');
 end
 f = cart2pol(f, 'cdr'); 
 [cols, ~, rows] = cdr(f); %calling cdr after cart2pol makes D = diag(1,1,1,1..1)

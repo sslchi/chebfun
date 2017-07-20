@@ -1,5 +1,5 @@
 function varargout = normalizePivots(varargin)
-%NORMALIZEPIVOTS   Scale rows and cols of a DISKFUN so that all pivots are 1.
+%NORMALIZEPIVOTS   Scale rows and cols of a SPHCAPFUN so that all pivots are 1.
 %
 % Additionally, the norm of the kth row and column will be the same.
 

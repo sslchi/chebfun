@@ -1,5 +1,5 @@
 function s = mean(f, dim)
-%MEAN   Average or mean value of a DISKFUN. 
+%MEAN   Average or mean value of a SPHCAPFUN. 
 %   MEAN(F) takes the mean in the angular direction (default), i.e., 
 %          MEAN(F) = sum(F).
 %
@@ -7,7 +7,7 @@ function s = mean(f, dim)
 %   radial direction, and if DIM = 2 then it is the angular direction,
 %   i.e., MEAN(F,2) = 1/(2*pi)*sum(F,2).
 %
-% See also DISKFUN/MEAN2, DISKFUN/STD2.
+% See also SPHCAPFUN/MEAN2, SPHCAPFUN/STD2.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
@@ -29,7 +29,7 @@ if ( dim == 1 )
 elseif ( dim == 2 )
     s = s / (2*pi); % Mean in the radial direction
 else
-    error('CHEBFUN:DISKFUN:mean:dim', ...
+    error('CHEBFUN:SPHCAPFUN:mean:dim', ...
         'dim must be 1 or 2.')
 end
 

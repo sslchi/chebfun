@@ -1,6 +1,6 @@
 function h = times(f, g)
-%.*   Pointwise multiplication for DISKFUN objects.
-%   F.*G multiplies DISKFUN objects F and G. Alternatively F or G could be 
+%.*   Pointwise multiplication for SPHCAPFUN objects.
+%   F.*G multiplies SPHCAPFUN objects F and G. Alternatively F or G could be 
 %   a double.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.

@@ -1,27 +1,27 @@
 function f = compose(f, op, varargin)
-%COMPOSE   compose command for DISKFUN objects. 
+%COMPOSE   compose command for SPHCAPFUN objects. 
 % 
-%   F = COMPOSE(F, OP) returns the DISKFUN that approximates OP(F).
+%   F = COMPOSE(F, OP) returns the SPHCAPFUN that approximates OP(F).
 % 
-%   F = COMPOSE(F, OP, G) returns the DISKFUN that approximates OP(F, G).
+%   F = COMPOSE(F, OP, G) returns the SPHCAPFUN that approximates OP(F, G).
 %
-%   F = COMPOSE(F, G) with a CHEBFUN G with one column returns a DISKFUN that
-%   approximates G(F).  If G has two columns, the result is a DISKFUNV. For a
+%   F = COMPOSE(F, G) with a CHEBFUN G with one column returns a SPHCAPFUN that
+%   approximates G(F).  If G has two columns, the result is a SPHCAPFUNV. For a
 %   CHEBFUN2 or CHEBFUN2V, the composition is interpreted as G(real(F),
 %   imag(F)).
 %
-% This command is a wrapper for the DISKFUN constructor. 
+% This command is a wrapper for the SPHCAPFUN constructor. 
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 if ( isa(op, 'chebfun') )
-    % Composition OP(f) of DISKFUN f and CHEBFUN OP.
+    % Composition OP(f) of SPHCAPFUN f and CHEBFUN OP.
     
     if ( length(op.domain) > 2 )
-        % If OP has several pieces, OP(DISKFUN) might be inaccurate.
-        warning('CHEBFUN:DISKFUN:compose:pieces', ...
-            ['The composition of a CHEBFUN with several pieces and a DISKFUN\n', ...
+        % If OP has several pieces, OP(SPHCAPFUN) might be inaccurate.
+        warning('CHEBFUN:SPHCAPFUN:compose:pieces', ...
+            ['The composition of a CHEBFUN with several pieces and a SPHCAPFUN\n', ...
             'might be inaccurate.']);
     end
     
@@ -30,7 +30,7 @@ if ( isa(op, 'chebfun') )
     tol = 100 * chebfun2eps * max(vscale(f), vscale(op)) * ...
             norm(f.domain, inf);    % Tolerance.
     if ( ~isSubset(vals, op.domain, tol) )
-        error('CHEBFUN:DISKFUN:COMPOSE:DomainMismatch', ...
+        error('CHEBFUN:SPHCAPFUN:COMPOSE:DomainMismatch', ...
             'OP(F) is not defined, since image(F) is not contained in domain(OP).')
     end
     
@@ -49,14 +49,14 @@ if ( isa(op, 'chebfun') )
         
     else
         % The CHEBFUN object OP has a wrong number of columns.
-        error('CHEBFUN:DISKFUN:COMPOSE:Columns', ...
+        error('CHEBFUN:SPHCAPFUN:COMPOSE:Columns', ...
             'The CHEBFUN object must have 1 or 2 columns.')
         
     end
     
 elseif ( isa(op, 'chebfun2') )
-    % Composition OP(f) of the DISKFUN f and CHEBFUN2 OP, interpreted as
-    % OP(real(f), imag(f)).  For now DISKFUNs are real, but this might change
+    % Composition OP(f) of the SPHCAPFUN f and CHEBFUN2 OP, interpreted as
+    % OP(real(f), imag(f)).  For now SPHCAPFUNs are real, but this might change
     % in the future.
         
     % Check that image(f) is contained in domain(OP).
@@ -64,7 +64,7 @@ elseif ( isa(op, 'chebfun2') )
     tol = 100 * chebfun2eps * max(vscale(f), vscale(op)) * ...
             norm(f.domain, inf);    % Tolerance.
     if ( ~isSubset(vals, op.domain(1:2), tol) )
-        error('CHEBFUN:DISKFUN:COMPOSE:DomainMismatch2', ...
+        error('CHEBFUN:SPHCAPFUN:COMPOSE:DomainMismatch2', ...
             'OP(F) is not defined, since image(F) is not contained in domain(OP).')
     end
     
@@ -72,13 +72,13 @@ elseif ( isa(op, 'chebfun2') )
     f = diskfun(@(x,y) op(feval(real(f), x, y), feval(imag(f), x, y)));
     
 elseif ( isa(op, 'chebfun2v') )
-    % Composition OP(f) of the DISKFUN object f and the CHEBFUN2V OP with two
+    % Composition OP(f) of the SPHCAPFUN object f and the CHEBFUN2V OP with two
     % components, interpreted as OP(real(f), imag(f)).
-    % For now DISKFUNs are real, but this might change in the future.
+    % For now SPHCAPFUNs are real, but this might change in the future.
         
     % Check that OP has two components:
     if ( op.nComponents ~= 2 )
-        error('CHEBFUN:DISKFUN:COMPOSE:C2VnComponents', ...
+        error('CHEBFUN:SPHCAPFUN:COMPOSE:C2VnComponents', ...
             'The Chebfun2v objects must have two components.')
     end
     
@@ -91,7 +91,7 @@ elseif ( isa(op, 'chebfun2v') )
     tol = 100 * chebfun2eps * max(vscale(f), vscale(op)) * ...
             norm(f.domain, inf);    % Tolerance.
     if ( ~isSubset(vals, op1.domain(1:2), tol) )
-        error('CHEBFUN:DISKFUN:COMPOSE:DomainMismatch2v', ...
+        error('CHEBFUN:SPHCAPFUN:COMPOSE:DomainMismatch2v', ...
             'OP(F) is not defined, since image(F) is not contained in domain(OP).')
     end
     
@@ -116,7 +116,7 @@ elseif ( nargin == 3 && nargin(op) == 2 )
     f = diskfun(@(x,y) op( feval(f, x, y, 'polar'), feval(g, x, y, 'polar') ), 'polar'); 
 else
     % Not sure what to do, error: 
-    error('CHEBFUN:DISKFUN:COMPOSE:OP', 'NARGIN(OP) not correct.')
+    error('CHEBFUN:SPHCAPFUN:COMPOSE:OP', 'NARGIN(OP) not correct.')
 end
 
 end 

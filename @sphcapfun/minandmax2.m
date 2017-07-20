@@ -1,6 +1,6 @@
 function [Y, X] = minandmax2( f )
-%MINANDMAX2   Find global minimum and maximum of a DISKFUN.
-%   M = minandmax2(F) returns the minimum and maximum values of a DISKFUN. 
+%MINANDMAX2   Find global minimum and maximum of a SPHCAPFUN.
+%   M = minandmax2(F) returns the minimum and maximum values of a SPHCAPFUN. 
 %   M is a vector of length 2 such that 
 %   M(1) = min(f(X,Y)) and M(2) = max(f(X,Y)).
 %
@@ -9,12 +9,12 @@ function [Y, X] = minandmax2( f )
 %
 %       F(LOC(1,1),LOC(1,2)) = M(1)  and  F(LOC(2,1),LOC(2,2)) = M(2)
 %
-% See also DISKFUN/MAX2, DISKFUN/MIN2, DISKFUN/NORM.
+% See also SPHCAPFUN/MAX2, SPHCAPFUN/MIN2, SPHCAPFUN/NORM.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
-% check for empty DISKFUN.
+% check for empty SPHCAPFUN.
 if ( isempty( f ) )
     Y = []; 
     X = [];
@@ -85,7 +85,7 @@ if ( length(f) == 1 ) % Rank-1 is easy:
     
 elseif ( length(f) <= maxsize )
     
-    % We seek a fast initial guess. So we first truncate the DISKFUN.
+    % We seek a fast initial guess. So we first truncate the SPHCAPFUN.
     ypts = chebpts(length(fcols), fcols.domain); 
     xpts = [trigpts(length(frows), frows.domain);pi];
     cvals = feval(fcols, ypts); 
@@ -163,12 +163,12 @@ elseif ( length(f) <= maxsize )
     
 elseif ( length(f) >= maxsize )
     
-    error('CHEBFUN:DISKFUN:minandmax2:length', 'Rank is too large.');
+    error('CHEBFUN:SPHCAPFUN:minandmax2:length', 'Rank is too large.');
     
 end
 
 % If the location of the max/min is outside of [0,1]x[-pi,pi], which can happen
-% because Diskfun is based on the double Fourier sphere method, then
+% because Sphcapfun is based on the double Fourier sphere method, then
 % translate back to [0,1]x[-pi,pi] using BMC symmetry:
 
 % check minimum:

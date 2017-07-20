@@ -1,7 +1,7 @@
 function varargout = subsref(f, index)
-%SUBSREF   DISKFUN subsref.
+%SUBSREF   SPHCAPFUN subsref.
 %( )
-%   F(TH, R, 'polar') returns the values of the DISKFUN F evaluated at the
+%   F(TH, R, 'polar') returns the values of the SPHCAPFUN F evaluated at the
 %   value(s) (TH, R) in polar coordinates. See CHEBFUN/FEVAL for
 %   further details.
 %
@@ -11,7 +11,7 @@ function varargout = subsref(f, index)
 %
 %   F(:, :) returns F.
 %
-%   F(X, Y) or F(X,Y, 'cart') returns the values of the DISKFUN F evaluated 
+%   F(X, Y) or F(X,Y, 'cart') returns the values of the SPHCAPFUN F evaluated 
 %   at the value(s) (X,Y) in Cartesian coordinates. 
 %   The colon operator for Cartesian coordinates is not supported, 
 %   except for F(:, :), which just returns F.
@@ -28,7 +28,7 @@ function varargout = subsref(f, index)
 %   F{[S1,S2, S3, S4]} is not supported due to the behaviour of the MATLAB 
 %   subsref() command.
 %
-% See also DISKFUN/FEVAL, DISKFUN/GET and DISKFUN/RESTRICT.
+% See also SPHCAPFUN/FEVAL, SPHCAPFUN/GET and SPHCAPFUN/RESTRICT.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
@@ -56,7 +56,7 @@ if ( strcmp(index(1).type, '()') )
         out = subsref@separableApprox(f, index);
         varargout = { out };
     %else
-      % error('CHEBFUN:DISKFUN:subsref:inputs', ...
+      % error('CHEBFUN:SPHCAPFUN:subsref:inputs', ...
                % 'Can only evaluate diskfuns at (X,Y) or (TH,R)');    
     end
     
@@ -70,7 +70,7 @@ elseif ( strcmp(index(1).type,'()') )
         varargout = { restrict(f,[idx{1}, idx{2}, idx{3}, idx{4}]) };
         
     else
-        error('CHEBFUN:DISKFUN:SUBSREF:restrict',...
+        error('CHEBFUN:SPHCAPFUN:SUBSREF:restrict',...
               'Restriction domain should be given by four corners');
     end
     

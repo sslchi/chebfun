@@ -17,7 +17,7 @@ function u = helmholtz( f, K, bc, m, n )
 %   of Fourier-Chebyshev coefficients. 
 %  
 %
-% See also SPHEREFUN/HELMHOLTZ, DISKFUN/POISSON.
+% See also SPHEREFUN/HELMHOLTZ, SPHCAPFUN/POISSON.
 
 % DEVELOPER'S NOTE: 
 %
@@ -44,7 +44,7 @@ m = 2*m+1;
 
 % Is n even? 
 if ( mod(n, 2) == 1 ) 
-    error('DISKFUN:HELMHOLTZ:N', 'The Fourier discretization size must be even.')
+    error('SPHCAPFUN:HELMHOLTZ:N', 'The Fourier discretization size must be even.')
 end
 
 % Construct operators

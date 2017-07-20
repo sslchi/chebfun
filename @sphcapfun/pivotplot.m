@@ -1,7 +1,7 @@
 function varargout = pivotplot(varargin)
 %PIVOTPLOT   Semilogy plot of pivot values.
 %   PIVOTPLOT(F) returns semilogy plot of the pivots values taken during
-%   the construction of the DISKFUN F.
+%   the construction of the SPHCAPFUN F.
 %
 %   H = PIVOTPLOT(F) returns a handle H to the figure.
 %

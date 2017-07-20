@@ -1,5 +1,5 @@
 function varargout = min2(varargin)
-%MIN2   Global minimum of a DISKFUN.
+%MIN2   Global minimum of a SPHCAPFUN.
 %   M = MIN2(F) returns the global minimum of F over its domain. 
 %   
 %   [M, LOC] = MIN2(F) returns the global minimum in M and its location in
@@ -7,7 +7,7 @@ function varargout = min2(varargin)
 %
 %  This command may be faster if the OPTIMIZATION TOOLBOX is installed.
 %
-% See also DISKFUN/MAX2, DISKFUN/MINANDMAX2.
+% See also SPHCAPFUN/MAX2, SPHCAPFUN/MINANDMAX2.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

@@ -1,5 +1,5 @@
 function varargout = cdr(varargin)
-%CDR decomposition of a DISKFUN.
+%CDR decomposition of a SPHCAPFUN.
 %   [C,D,R] = CDR(F) produces a diagonal matrix D of size length(F) by
 %   length(F) and quasimatrices C and R of size inf by length(F) such that
 %   f(theta,r) = C(r,:) * D * R(theta,:)'.
@@ -7,7 +7,7 @@ function varargout = cdr(varargin)
 %   D = CDR(F) returns a vector containing the pivot values used in the
 %   construction of F.
 %
-% See also DISKFUN/PIVOTS, DISKFUN/SVD. 
+% See also SPHCAPFUN/PIVOTS, SPHCAPFUN/SVD. 
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.

@@ -1,7 +1,7 @@
 function varargout = coeffs2( f, m, n ) 
-%COEFFS2   Fourier--Chebyshev coefficients of a DISKFUN. 
+%COEFFS2   Fourier--Chebyshev coefficients of a SPHCAPFUN. 
 % 
-%   X = COEFFS2( F ) returns the coefficients of the DISKFUN F in the
+%   X = COEFFS2( F ) returns the coefficients of the SPHCAPFUN F in the
 %   Fourier--Chebyshev bases, where the columns are the Chebyshev
 %   coefficients and the rows are Fourier coefficients.
 % 
@@ -39,7 +39,7 @@ if ( nargout <= 1 )
 elseif ( nargout <= 3 )
     varargout = {U, D, R};
 else
-    error('DISKFUN:COEFFS:NARGOUT',...
+    error('SPHCAPFUN:COEFFS:NARGOUT',...
             'Too many output arguments')
 end
 

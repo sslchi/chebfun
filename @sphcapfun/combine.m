@@ -9,13 +9,13 @@ function g = combine(g,h)
 %
 %   If they do not have this property then g+h or plus(g,h) should be used.
 %
-% See also DISKFUN/PARTITION.
+% See also SPHCAPFUN/PARTITION.
 
 % Copyright 2017 by The University of Oxford and The Chebfun Developers.
 % See http://www.chebfun.org/ for Chebfun information.
 
 if ~isa(g,'diskfun') || ~isa(h,'diskfun')
-    error('CHEBFUN:DISKFUN:combine:unknown',['Undefined function ''combine'' for ' ...
+    error('CHEBFUN:SPHCAPFUN:combine:unknown',['Undefined function ''combine'' for ' ...
         'input argument of type %s and %s.'], class(g),class(h));
 end
 
@@ -33,7 +33,7 @@ idmh = h.idxMinus;
 
 % Only combine diskfuns that have one strict type of parity.
 if (~isempty(idpg) && ~isempty(idmg)) || (~isempty(idph) && ~isempty(idmh))
-    error('CHEBFUN:DISKFUN:combine:parity',['Inputs must have oposite'...
+    error('CHEBFUN:SPHCAPFUN:combine:parity',['Inputs must have oposite'...
         'parity. Consider using plus']);
 end
 
