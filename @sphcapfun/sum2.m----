@@ -27,7 +27,7 @@ d = diag(d(f.idxPlus,f.idxPlus)).';
 intRows = sum(rows);
 
 % Create a chebfun of the measure. 
-measure = chebfun(@(r) 1+0*r,[-1,1]);
+measure = chebfun(@(r) sin(r),[-1,1]);
 
 % Multiply the columns by the measure
 cols = cols.*(measure*ones(1,size(cols,2)));
